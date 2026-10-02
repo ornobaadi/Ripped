@@ -40,6 +40,14 @@ class FakeAuth implements AuthService {
     return result;
   }
 
+  int deletions = 0;
+
+  @override
+  Future<void> deleteAccount() async {
+    deletions++;
+    await signOut();
+  }
+
   @override
   Future<void> signOut() async {
     signOuts++;

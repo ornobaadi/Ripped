@@ -28,7 +28,6 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  cupertino_icons: ^1.0.8
   drift: ^2.35.1
   drift_flutter: ^0.3.1
   flutter:
@@ -44,9 +43,11 @@ dependencies:
   meta: ^1.19.0
   path_provider: ^2.1.6
   sentry_flutter: ^9.30.1
+  share_plus: ^13.3.1
   sqlite3: ^3.7.0
   supabase_flutter: ^2.18.0
   timezone: ^0.11.1
+  url_launcher: ^6.3.2
   uuid: ^4.6.0
   # 1.8.1+ needs dbus 0.8, which conflicts with flutter_local_notifications.
   wakelock_plus: ">=1.8.0 <1.8.1"
@@ -77,6 +78,7 @@ flutter:
   assets:
     - assets/catalog/
     - assets/catalog/images/
+    - assets/legal/
 
   fonts:
     - family: Inter

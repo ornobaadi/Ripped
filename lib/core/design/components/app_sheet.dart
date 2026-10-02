@@ -54,36 +54,39 @@ class AppListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     final text = Theme.of(context).textTheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadii.chip),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: AppTapTargets.workout),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, color: c.textSecondary),
-                const SizedBox(width: AppSpacing.lg),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: text.bodyLarge),
-                    if (subtitle != null)
-                      Text(
-                        subtitle!,
-                        style: text.bodyMedium?.copyWith(
-                          color: c.textSecondary,
+    // One node per row, so a trailing switch is announced with its title.
+    return MergeSemantics(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.chip),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: AppTapTargets.workout),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Row(
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, color: c.textSecondary),
+                  const SizedBox(width: AppSpacing.lg),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: text.bodyLarge),
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          style: text.bodyMedium?.copyWith(
+                            color: c.textSecondary,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              ?trailing,
-            ],
+                ?trailing,
+              ],
+            ),
           ),
         ),
       ),

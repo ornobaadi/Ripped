@@ -99,17 +99,17 @@ Scope
 **Goal:** users can safely back up and sync; we are store-compliant for accounts.
 
 Scope
-- [ ] Supabase projects (staging/prod); local dev via Supabase CLI
-- [ ] Postgres schema mirroring Drift + **RLS on every table** + RLS tests (user A ≠ user B)
-- [ ] 2-day spike: PowerSync vs custom outbox sync → decide → implement
-- [ ] Auth: Google sign-in (done in app, pending owner's Google Cloud setup); Apple later with iOS; email OTP dropped; anonymous data merge on first sign-in
-- [ ] Secure token storage; sign-out wipes local session
-- [ ] In-app account deletion (Edge Function) + local wipe
-- [ ] Data export (JSON/CSV)
-- [ ] Privacy policy & Terms (in app + web page)
-- [ ] RevenueCat SDK + `pro` entitlement plumbing, **hidden behind remote flag**
-- [ ] Remote config / feature flags with safe defaults
-- [ ] Security review: run Supabase advisors, secret scan, dependency audit, check logs for PII, review every Edge Function
+- [x] Supabase project (prod only, by choice); local dev via Supabase CLI optional
+- [x] Postgres schema mirroring Drift + **RLS on every table** + RLS tests (user A ≠ user B) — `supabase/tests/rls_test.sql`, run with `supabase test db`
+- [x] Sync: decided custom outbox (see DECISIONS) → implemented, two-device convergence tested
+- [x] Auth: Google sign-in; Apple later with iOS; email OTP dropped; anonymous data merge on first sign-in
+- [x] Secure token storage (supabase_flutter session); sign-out wipes local session (workouts stay on the phone)
+- [x] In-app account deletion (Edge Function) + local wipe
+- [x] Data export (JSON/CSV)
+- [x] Privacy policy, Terms and account-deletion page: in app (`assets/legal/`) + web (`docs/*.html` via `tool/build_legal.py`, GitHub Pages); owner fills contact email
+- [ ] RevenueCat SDK + `pro` entitlement plumbing, **hidden behind remote flag** — deferred to Phase 7 (needs RevenueCat + Play billing accounts)
+- [ ] Remote config / feature flags with safe defaults — deferred until there's a feature to flag
+- [x] Security review: secret scan, dependency audit, log PII check, Edge Function review done; owner checks Supabase advisors
 
 **Exit criteria**
 - Two devices, same account, offline edits on both → sync converges with no lost sets
@@ -125,12 +125,12 @@ Scope
 
 Scope
 - [ ] Google Play closed testing (TestFlight once iOS ships) (new personal Play accounts must run a closed test with a minimum number of testers for a minimum period before production — check current requirements early and recruit testers now)
-- [ ] Accessibility audit with `design.md §7` checklist on every screen
-- [ ] Performance: cold start < 2 s on a mid-range Android; jank-free workout screen
+- [x] Accessibility audit: automated tap-target/label/contrast checks on every main screen (`test/app_flow_test.dart`) + 200% text reflow; 4 issues fixed. Manual TalkBack pass still worthwhile
+- [~] Performance: backend init moved off the startup path; measure cold start on a device (`flutter run --profile`)
 - [ ] Device matrix testing
-- [ ] Analytics events for the funnel (no health values)
-- [ ] Store listing: screenshots, short video, privacy labels / Data Safety form, Health Connect declaration if used
-- [ ] In-app feedback link; respond to every beta tester
+- [x] Analytics events for the funnel (no health values; allow-listed props) — provider (PostHog) not yet chosen
+- [~] Store listing: text, Data Safety answers, content answers in `RELEASE.md`; owner takes screenshots + feature graphic
+- [x] In-app feedback link (needs `SUPPORT_EMAIL`); respond to every beta tester
 
 **Exit criteria**
 - Beta D7 retention ≥ 25%, crash-free sessions ≥ 99.8%

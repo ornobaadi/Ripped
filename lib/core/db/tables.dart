@@ -156,3 +156,20 @@ class PersonalRecords extends Table with SyncColumns {
   TextColumn get workoutId => text().references(Workouts, #id)();
   DateTimeColumn get achievedAt => dateTime()();
 }
+
+/// Rows changed locally and not yet uploaded. Filled by SQLite triggers
+/// (see `AppDatabase.syncTriggers`), so no write path can forget it.
+/// Device-local; never synced itself.
+@DataClassName('OutboxEntry')
+class SyncOutbox extends Table {
+  /// Server table name, e.g. `workout_sets`.
+  TextColumn get tbl => text()();
+  TextColumn get rowId => text()();
+
+  /// Bumped on every change; an upload only clears the entry if the row
+  /// hasn't changed again since it was read.
+  IntColumn get seq => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {tbl, rowId};
+}

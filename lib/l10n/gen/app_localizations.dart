@@ -1353,6 +1353,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Signed in'**
   String get signedIn;
+
+  /// No description provided for @sectionDataPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & privacy'**
+  String get sectionDataPrivacy;
+
+  /// No description provided for @exportData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export my data'**
+  String get exportData;
+
+  /// No description provided for @exportDataSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything you\'ve logged, as JSON and CSV'**
+  String get exportDataSub;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the export. Please try again.'**
+  String get exportFailed;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @terms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of use'**
+  String get terms;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes your account and backups'**
+  String get deleteAccountSub;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your account and all backed-up data, and clears Ripped on this phone. It can\'t be undone. Export your data first if you want a copy.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete forever'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account and data were deleted.'**
+  String get accountDeleted;
+
+  /// No description provided for @deleteAccountFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete your account. Check your connection and try again.'**
+  String get deleteAccountFailed;
+
+  /// No description provided for @syncedAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Backed up {time}'**
+  String syncedAgo(String time);
+
+  /// No description provided for @syncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Backing up…'**
+  String get syncing;
+
+  /// No description provided for @syncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not backed up yet. We\'ll retry automatically.'**
+  String get syncFailed;
+
+  /// No description provided for @syncOtherAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone\'s data belongs to another account, so it isn\'t being backed up here.'**
+  String get syncOtherAccount;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get syncNow;
+
+  /// No description provided for @agoJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get agoJustNow;
+
+  /// No description provided for @agoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min ago'**
+  String agoMinutes(int n);
+
+  /// No description provided for @agoHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} h ago'**
+  String agoHours(int n);
+
+  /// No description provided for @agoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} d ago'**
+  String agoDays(int n);
+
+  /// No description provided for @sendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get sendFeedback;
+
+  /// No description provided for @sendFeedbackSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Bugs, ideas, anything. We read every message.'**
+  String get sendFeedbackSub;
+
+  /// No description provided for @feedbackSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Ripped feedback'**
+  String get feedbackSubject;
 }
 
 class _AppLocalizationsDelegate

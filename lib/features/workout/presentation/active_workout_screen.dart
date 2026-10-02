@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/sync/sync_controller.dart';
 import 'package:ripped/core/utils/format.dart';
 import 'package:ripped/domain/catalog/exercise.dart';
 import 'package:ripped/domain/plan/plan_generator.dart';
@@ -162,6 +164,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
     final repo = ref.read(workoutRepositoryProvider);
     if (outcome.discard) {
       await repo.abandonWorkout(w.id);
+      ref.read(analyticsProvider).track(AnalyticsEvent.workoutAbandoned);
       if (mounted) context.go('/');
       return;
     }
@@ -171,6 +174,14 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       feeling: outcome.feeling,
       weeklyTarget: ref.read(profileProvider).daysPerWeek,
     );
+    ref.read(analyticsProvider).track(AnalyticsEvent.workoutCompleted, {
+      'sets': w.doneSets,
+      'minutes': w.duration.inMinutes,
+      'prs': result.records.length,
+      'leveled_up': result.leveledUp,
+      'week_completed': result.weekCompleted,
+    });
+    unawaited(ref.read(syncControllerProvider.notifier).requestSync());
     if (mounted) context.go('/workout/${w.id}/complete', extra: result);
   }
 
@@ -538,9 +549,13 @@ class _ExercisePage extends ConsumerWidget {
                 ],
               ),
             ),
-            GestureDetector(
-              onTap: () => context.push('/exercise/${exercise.id}'),
-              child: ExerciseThumb(exercise: exercise, size: 64),
+            Semantics(
+              button: true,
+              label: l10n.exerciseDetails,
+              child: GestureDetector(
+                onTap: () => context.push('/exercise/${exercise.id}'),
+                child: ExerciseThumb(exercise: exercise, size: 64),
+              ),
             ),
             IconButton(
               tooltip: MaterialLocalizations.of(context).showMenuTooltip,

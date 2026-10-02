@@ -47,7 +47,7 @@ void main() {
       ''');
 
     final db = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(db, 2);
+    await verifier.migrateAndValidate(db, 3);
 
     final profiles = await db.select(db.profiles).get();
     expect(profiles.single.goal, 'muscle');
@@ -56,6 +56,38 @@ void main() {
     expect(workouts.single.status, WorkoutStatus.completed);
     expect(await db.select(db.xpEvents).get(), isEmpty);
     expect(await db.select(db.personalRecords).get(), isEmpty);
+    await db.close();
+  });
+
+  test('after upgrading, changes are tracked for sync', () async {
+    final schema = await verifier.schemaAt(2);
+    final db = AppDatabase(schema.newConnection());
+    await verifier.migrateAndValidate(db, 3);
+
+    const now = '2026-09-01T10:00:00.000';
+    await db.customStatement('''
+      INSERT INTO workouts (id, created_at, updated_at, name, started_at,
+        status)
+      VALUES ('w1', '$now', '$now', 'A', '$now', 'completed')
+    ''');
+    var outbox = await db.select(db.syncOutbox).get();
+    expect(outbox.single.tbl, 'workouts');
+    final firstSeq = outbox.single.seq;
+
+    await db.customStatement("UPDATE workouts SET name = 'B' WHERE id = 'w1'");
+    outbox = await db.select(db.syncOutbox).get();
+    expect(outbox, hasLength(1), reason: 'one entry per row');
+    expect(outbox.single.seq, greaterThan(firstSeq));
+
+    // Rows applied from the server are not queued again.
+    await db.customStatement(
+      "INSERT INTO settings (key, value) VALUES ('sync.applying', '1')",
+    );
+    await db.customStatement("UPDATE workouts SET name = 'C' WHERE id = 'w1'");
+    expect(
+      (await db.select(db.syncOutbox).get()).single.seq,
+      outbox.single.seq,
+    );
     await db.close();
   });
 }

@@ -11,6 +11,7 @@ class AppConfig {
     required this.supabasePublishableKey,
     required this.sentryDsn,
     required this.googleWebClientId,
+    required this.supportEmail,
   });
 
   factory fromEnvironment(AppFlavor flavor) => AppConfig(
@@ -21,6 +22,7 @@ class AppConfig {
     ),
     sentryDsn: const String.fromEnvironment('SENTRY_DSN'),
     googleWebClientId: const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
+    supportEmail: const String.fromEnvironment('SUPPORT_EMAIL'),
   );
 
   final AppFlavor flavor;
@@ -30,6 +32,9 @@ class AppConfig {
 
   /// OAuth client ID of type "Web application" (not the Android one).
   final String googleWebClientId;
+
+  /// Where "Send feedback" goes. Hidden when empty.
+  final String supportEmail;
 
   bool get isProd => flavor == AppFlavor.prod;
 

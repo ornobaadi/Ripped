@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -108,6 +109,7 @@ Future<void> _start(
   final id = await ref
       .read(workoutRepositoryProvider)
       .startWorkout(day, units: ref.read(unitsProvider));
+  ref.read(analyticsProvider).track(AnalyticsEvent.workoutStarted);
   if (context.mounted) await context.push('/workout/$id');
 }
 

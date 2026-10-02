@@ -262,6 +262,7 @@ class WorkoutRepository {
           ON e.workout_id = w.id AND e.skipped = 0
         LEFT JOIN workout_sets s
           ON s.workout_exercise_id = e.id AND s.completed_at IS NOT NULL
+            AND s.deleted_at IS NULL
         WHERE w.status = 'completed' AND w.deleted_at IS NULL
         GROUP BY w.id
         ORDER BY w.started_at DESC
@@ -338,7 +339,11 @@ class WorkoutRepository {
   Future<void> addSet(String workoutExerciseId) => _db.transaction(() async {
     final last =
         await (_db.select(_db.workoutSets)
-              ..where((s) => s.workoutExerciseId.equals(workoutExerciseId))
+              ..where(
+                (s) =>
+                    s.workoutExerciseId.equals(workoutExerciseId) &
+                    s.deletedAt.isNull(),
+              )
               ..orderBy([(s) => OrderingTerm.desc(s.setIndex)])
               ..limit(1))
             .getSingle();
@@ -362,15 +367,14 @@ class WorkoutRepository {
               ..where(
                 (s) =>
                     s.workoutExerciseId.equals(workoutExerciseId) &
-                    s.completedAt.isNull(),
+                    s.completedAt.isNull() &
+                    s.deletedAt.isNull(),
               )
               ..orderBy([(s) => OrderingTerm.desc(s.setIndex)])
               ..limit(1))
             .getSingleOrNull();
     if (last == null) return;
-    await (_db.delete(
-      _db.workoutSets,
-    )..where((s) => s.id.equals(last.id))).go();
+    await _softDeleteSets([last.id]);
   }
 
   Future<void> setSkipped(String workoutExerciseId, {required bool skipped}) =>
@@ -405,12 +409,12 @@ class WorkoutRepository {
     final we = await (_db.select(
       _db.workoutExercises,
     )..where((e) => e.id.equals(workoutExerciseId))).getSingle();
-    final sets = await (_db.select(
-      _db.workoutSets,
-    )..where((s) => s.workoutExerciseId.equals(we.id))).get();
-    await (_db.delete(
-      _db.workoutSets,
-    )..where((s) => s.workoutExerciseId.equals(we.id))).go();
+    final sets =
+        await (_db.select(_db.workoutSets)..where(
+              (s) => s.workoutExerciseId.equals(we.id) & s.deletedAt.isNull(),
+            ))
+            .get();
+    await _softDeleteSets([for (final s in sets) s.id]);
     await (_db.update(
       _db.workoutExercises,
     )..where((e) => e.id.equals(we.id))).write(
@@ -432,6 +436,14 @@ class WorkoutRepository {
     );
   });
 
+  /// Deletes are soft (deleted_at) so they sync to other devices.
+  Future<void> _softDeleteSets(List<String> ids) {
+    final now = DateTime.now();
+    return (_db.update(_db.workoutSets)..where((s) => s.id.isIn(ids))).write(
+      WorkoutSetsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+  }
+
   /// Moves an exercise to [newIndex], shifting the others.
   Future<void> moveExercise(String workoutId, int oldIndex, int newIndex) =>
       _db.transaction(() async {
@@ -444,9 +456,14 @@ class WorkoutRepository {
         rows.insert(newIndex.clamp(0, rows.length), moved);
         for (final (i, r) in rows.indexed) {
           if (r.sortOrder == i) continue;
-          await (_db.update(_db.workoutExercises)
-                ..where((e) => e.id.equals(r.id)))
-              .write(WorkoutExercisesCompanion(sortOrder: Value(i)));
+          await (_db.update(
+            _db.workoutExercises,
+          )..where((e) => e.id.equals(r.id))).write(
+            WorkoutExercisesCompanion(
+              sortOrder: Value(i),
+              updatedAt: Value(DateTime.now()),
+            ),
+          );
         }
       });
 
@@ -643,6 +660,7 @@ class WorkoutRepository {
     var where =
         _db.workoutExercises.exerciseId.equals(exerciseId) &
         _db.workoutSets.completedAt.isNotNull() &
+        _db.workoutSets.deletedAt.isNull() &
         _db.workouts.status.equalsValue(WorkoutStatus.completed);
     if (extra != null) where = where & extra;
     return (_db.select(_db.workoutSets).join([
@@ -676,7 +694,8 @@ class WorkoutRepository {
           JOIN workout_exercises e ON e.id = s.workout_exercise_id
           JOIN workouts w ON w.id = e.workout_id
           WHERE w.status = 'completed' AND s.completed_at IS NOT NULL
-            AND s.weight_kg IS NOT NULL AND w.started_at >= ?
+            AND s.deleted_at IS NULL AND s.weight_kg IS NOT NULL
+            AND w.started_at >= ?
           GROUP BY w.id
           ''',
           variables: [Variable(from)],
@@ -757,6 +776,7 @@ class WorkoutRepository {
           JOIN workout_sets s ON s.workout_exercise_id = e.id
           WHERE w.status = 'completed' AND e.skipped = 0
             AND s.completed_at IS NOT NULL AND s.weight_kg IS NOT NULL
+            AND s.deleted_at IS NULL
           GROUP BY e.exercise_id
           ORDER BY n DESC
           ''',

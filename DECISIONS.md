@@ -79,3 +79,22 @@ Prod-only Supabase project for now; `env/dev.json` points at it too (dev test da
 **Why:** owner's choice; fewer moving parts for an Android-only launch.
 **Keys:** the app uses the new **publishable** key (`SUPABASE_PUBLISHABLE_KEY`); `supabase_flutter` deprecated `anonKey`. The secret key never enters the app.
 **Startup:** Supabase init is skipped without config and capped at 3 s; any failure falls back to offline (`OfflineAuthService`).
+
+## 2026-10-02 · Sync: custom outbox, not PowerSync
+SQLite triggers queue every insert/update of a synced table in `sync_outbox`; `SyncService` uploads them (upsert by id) and pulls rows by server-assigned `synced_at`. Conflicts: last write wins per row by the client's `updated_at`, enforced on the server by a trigger and on the device when applying. Pulled rows are written with `sync.applying` set so triggers don't re-queue them.
+**Why:** single-user, append-mostly data; no extra paid service; fully testable offline (`test/features/sync_test.dart` runs two phones against a fake server, including offline edits converging).
+**Server design:** no foreign keys between synced tables (rows arrive in any order); `user_id` always comes from the JWT; no DELETE policy (deletes are soft); deleting the auth user cascades everything.
+**Guards:** a phone remembers which account first synced it and refuses to upload into a different account. `exercise_states` clashes across phones keep the newest. Hard deletes in the app were converted to soft deletes so they sync.
+**Alternatives:** PowerSync (managed, Drift integration) if conflict needs grow beyond LWW.
+
+## 2026-10-02 · RevenueCat and remote config deferred
+Listed under Phase 3 but they only matter for Pro (Phase 7) and need accounts that don't exist yet. Adding SDKs with nothing to gate is dead weight.
+
+## 2026-10-02 · Backend init off the startup path
+`Supabase.initialize` can refresh an expired session over the network. It now runs in the background (`backendProvider`); the app's first frame never waits for it, and auth/sync providers switch from offline to online when it resolves.
+
+## 2026-10-02 · Analytics: events defined, provider pending
+`core/analytics/analytics.dart` defines the funnel events and an allow-list of properties (no weights, reps, emails or names can pass). Events print in debug only until a provider is chosen; adding one is a single implementation of `Analytics`, plus a Data Safety form update.
+
+## 2026-10-02 · Legal pages generated from the in-app text
+`tool/build_legal.py` renders `assets/legal/*.md` into `docs/*.html` (GitHub Pages), so the Play listing and the app show identical policies. Includes the account-deletion web page Play requires.

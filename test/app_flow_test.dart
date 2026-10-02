@@ -92,6 +92,79 @@ void main() {
     });
   });
 
+  testWidgets('every main screen passes accessibility guidelines', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    // Drift needs real async (runAsync); the contrast check uses runAsync
+    // internally too, so each step runs on its own and audits run between.
+    Future<void> step(Future<void> Function() body) => tester.runAsync(body);
+    Future<void> audit(String screen) async {
+      for (final g in [
+        androidTapTargetGuideline,
+        labeledTapTargetGuideline,
+        textContrastGuideline,
+      ]) {
+        final result = await g.evaluate(tester);
+        expect(result.passed, isTrue, reason: '$screen: ${result.reason}');
+      }
+    }
+
+    await step(() => pumpApp(tester));
+    await audit('onboarding');
+    await step(() async {
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+    });
+    await audit('disclaimer');
+    await step(() async {
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+    });
+    await audit('plan preview');
+    await step(() async {
+      await tester.tap(find.text('Looks good'));
+      await settle(tester);
+    });
+    await audit('today');
+    await step(() async {
+      final start = find.text('Start workout');
+      await tester.tap(
+        start.evaluate().isEmpty ? find.text('Train anyway') : start,
+      );
+      await settle(tester, frames: 30);
+    });
+    await audit('active workout');
+    await step(() async {
+      await tester.tap(find.bySemanticsLabel('Mark set 1 done').first);
+      await settle(tester);
+    });
+    await audit('active workout resting');
+    await step(() async {
+      await tester.tap(find.text('Finish'));
+      await settle(tester);
+    });
+    await audit('finish sheet');
+    await step(() async {
+      await tester.tap(find.text('Finish workout'));
+      await settle(tester, frames: 60);
+    });
+    await audit('summary');
+    await step(() async {
+      await tester.tap(find.text('Done'));
+      await settle(tester);
+    });
+    for (final tab in ['Progress', 'You']) {
+      await step(() async {
+        await tester.tap(find.text(tab).last);
+        await settle(tester);
+      });
+      await audit(tab);
+    }
+    await step(() => unmount(tester));
+    handle.dispose();
+  });
+
   testWidgets('every tab reflows at 200% text', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

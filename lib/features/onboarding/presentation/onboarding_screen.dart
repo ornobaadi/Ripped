@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -90,6 +91,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       repo.saveProgram(plan),
       Future<void>.delayed(const Duration(milliseconds: 900)),
     ]);
+    ref.read(analyticsProvider).track(AnalyticsEvent.onboardingCompleted, {
+      'goal': _draft.goal.name,
+      'experience': _draft.experience.name,
+      'days_per_week': _draft.daysPerWeek,
+      'session_minutes': _draft.sessionMinutes,
+    });
     // Training days may have changed: move reminders with them.
     final reminders = ref.read(remindersProvider).value;
     if (mounted && (reminders?.enabled ?? false)) {

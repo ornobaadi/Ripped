@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ripped/app/config.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/auth/auth_service.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/profile_mapping.dart';
 import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/notifications/reminder_service.dart';
+import 'package:ripped/core/sync/sync_service.dart';
 import 'package:ripped/domain/gamification/streak.dart';
 import 'package:ripped/domain/gamification/xp.dart';
 import 'package:ripped/domain/plan/plan_generator.dart';
@@ -15,6 +18,18 @@ import 'package:ripped/features/workout/data/workout_models.dart';
 import 'package:ripped/features/workout/data/workout_repository.dart';
 
 // Infrastructure: created in bootstrap (or tests) and overridden.
+
+/// Build-time config; empty (fully offline, no support email) by default.
+final appConfigProvider = Provider<AppConfig>(
+  (ref) => const AppConfig(
+    flavor: AppFlavor.dev,
+    supabaseUrl: '',
+    supabasePublishableKey: '',
+    sentryDsn: '',
+    googleWebClientId: '',
+    supportEmail: '',
+  ),
+);
 
 final databaseProvider = Provider<AppDatabase>(
   (ref) => throw UnimplementedError('Overridden in bootstrap'),
@@ -38,6 +53,9 @@ final workoutRepositoryProvider = Provider<WorkoutRepository>(
     ref.watch(catalogProvider),
   ),
 );
+
+/// Swapped for a real provider (e.g. PostHog) when one is chosen.
+final analyticsProvider = Provider<Analytics>((ref) => const DebugAnalytics());
 
 // Reactive state.
 
@@ -173,9 +191,23 @@ Future<bool> applyReminders(
 
 // Accounts (optional).
 
-/// Overridden in bootstrap; offline (always signed out) by default.
+/// Auth + sync transport, once Supabase has initialised. Bootstrap starts
+/// it without awaiting, so a slow network never delays the first frame.
+class Backend {
+  const new({required this.auth, this.remote});
+
+  static const offline = Backend(auth: OfflineAuthService());
+
+  final AuthService auth;
+  final SyncRemote? remote;
+}
+
+/// Overridden in bootstrap with the in-flight initialisation.
+final backendProvider = FutureProvider<Backend>((ref) async => Backend.offline);
+
+/// Signed-out until the backend is ready (or forever, when offline).
 final authServiceProvider = Provider<AuthService>(
-  (ref) => const OfflineAuthService(),
+  (ref) => ref.watch(backendProvider).value?.auth ?? const OfflineAuthService(),
 );
 
 final currentUserProvider = StreamProvider<AppUser?>((ref) async* {

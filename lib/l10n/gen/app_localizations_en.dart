@@ -753,4 +753,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signedIn => 'Signed in';
+
+  @override
+  String get sectionDataPrivacy => 'Data & privacy';
+
+  @override
+  String get exportData => 'Export my data';
+
+  @override
+  String get exportDataSub => 'Everything you\'ve logged, as JSON and CSV';
+
+  @override
+  String get exportFailed => 'Couldn\'t create the export. Please try again.';
+
+  @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get terms => 'Terms of use';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountSub => 'Removes your account and backups';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get deleteAccountBody =>
+      'This permanently deletes your account and all backed-up data, and clears Ripped on this phone. It can\'t be undone. Export your data first if you want a copy.';
+
+  @override
+  String get deleteAccountConfirm => 'Delete forever';
+
+  @override
+  String get accountDeleted => 'Your account and data were deleted.';
+
+  @override
+  String get deleteAccountFailed =>
+      'Couldn\'t delete your account. Check your connection and try again.';
+
+  @override
+  String syncedAgo(String time) {
+    return 'Backed up $time';
+  }
+
+  @override
+  String get syncing => 'Backing up…';
+
+  @override
+  String get syncFailed => 'Not backed up yet. We\'ll retry automatically.';
+
+  @override
+  String get syncOtherAccount =>
+      'This phone\'s data belongs to another account, so it isn\'t being backed up here.';
+
+  @override
+  String get syncNow => 'Back up now';
+
+  @override
+  String get agoJustNow => 'just now';
+
+  @override
+  String agoMinutes(int n) {
+    return '$n min ago';
+  }
+
+  @override
+  String agoHours(int n) {
+    return '$n h ago';
+  }
+
+  @override
+  String agoDays(int n) {
+    return '$n d ago';
+  }
+
+  @override
+  String get sendFeedback => 'Send feedback';
+
+  @override
+  String get sendFeedbackSub => 'Bugs, ideas, anything. We read every message.';
+
+  @override
+  String get feedbackSubject => 'Ripped feedback';
 }

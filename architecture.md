@@ -163,7 +163,7 @@ Data shape makes sync easier than most apps: workout logs are **append-mostly** 
 **Option A — PowerSync (recommended if budget allows):** proven Supabase integration, Flutter SDK, Drift integration (`drift_sqlite_async`), handles queueing/retries/consistency. Cost: a paid service at scale (or self-hosted Open Edition).
 **Option B — Custom sync:** an outbox table of pending changes, pushed via Supabase upserts; pull by `updated_at > last_synced_at`. Cheaper; more code to get right; must be heavily tested.
 
-Decide at the start of Phase 3 with a 2-day spike of each. Until then, the app is fully functional local-only.
+**Decided: Option B** (custom outbox). See DECISIONS.md 2026-10-02 and `lib/core/sync/`. Server schema: `supabase/migrations/`.
 
 ## 6. Domain engines
 

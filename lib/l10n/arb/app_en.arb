@@ -521,5 +521,58 @@
   "signInFailed": "Couldn't sign in with Google. Check your connection and try again.",
   "signOut": "Sign out",
   "signOutConfirm": "Sign out? Your workouts stay on this phone.",
-  "signedIn": "Signed in"
+  "signedIn": "Signed in",
+  "sectionDataPrivacy": "Data & privacy",
+  "exportData": "Export my data",
+  "exportDataSub": "Everything you've logged, as JSON and CSV",
+  "exportFailed": "Couldn't create the export. Please try again.",
+  "privacyPolicy": "Privacy policy",
+  "terms": "Terms of use",
+  "deleteAccount": "Delete account",
+  "deleteAccountSub": "Removes your account and backups",
+  "deleteAccountTitle": "Delete your account?",
+  "deleteAccountBody": "This permanently deletes your account and all backed-up data, and clears Ripped on this phone. It can't be undone. Export your data first if you want a copy.",
+  "deleteAccountConfirm": "Delete forever",
+  "accountDeleted": "Your account and data were deleted.",
+  "deleteAccountFailed": "Couldn't delete your account. Check your connection and try again.",
+  "syncedAgo": "Backed up {time}",
+  "syncing": "Backing up…",
+  "syncFailed": "Not backed up yet. We'll retry automatically.",
+  "syncOtherAccount": "This phone's data belongs to another account, so it isn't being backed up here.",
+  "syncNow": "Back up now",
+  "@syncedAgo": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "agoJustNow": "just now",
+  "agoMinutes": "{n} min ago",
+  "agoHours": "{n} h ago",
+  "agoDays": "{n} d ago",
+  "@agoMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@agoHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@agoDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "sendFeedback": "Send feedback",
+  "sendFeedbackSub": "Bugs, ideas, anything. We read every message.",
+  "feedbackSubject": "Ripped feedback"
 }

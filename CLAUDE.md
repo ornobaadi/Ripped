@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 **Ripped** (Dart package `ripped`, app id / bundle id `com.ornobaadi.ripped`): a minimalist, local-first, personal workout app. **Android first** (Google Play); iOS later. Global, English only. Onboard → get a generated plan → log workouts → adaptive progression → habit/gamification.
 
-**Current state:** Phases 0–2 implemented. Phase 1 core loop (onboarding → plan → Today → workout → summary → history, offline). Phase 2: XP ledger + levels, weekly streak + shields, PRs, celebration, Progress tab (streak calendar, PRs, trend chart), reminders, comeback, volume-spike note. Schema v2. Open exit items: on-device Patrol E2E, personal 2-week trial, friends test. Phase 3 in progress: optional Google sign-in (`core/auth/auth_service.dart`, `features/settings/presentation/account_card.dart`) on a single prod Supabase project; owner is doing the Google Cloud/Supabase steps in `SETUP_BACKEND.md`. Next: sync tables + RLS in `supabase/migrations/`.
+**Current state:** Phases 0–2 implemented. Phase 1 core loop (onboarding → plan → Today → workout → summary → history, offline). Phase 2: XP ledger + levels, weekly streak + shields, PRs, celebration, Progress tab (streak calendar, PRs, trend chart), reminders, comeback, volume-spike note. Schema v2. Open exit items: on-device Patrol E2E, personal 2-week trial, friends test. Phase 3 implemented: optional Google sign-in, custom outbox sync (`core/sync/`), server schema + RLS (`supabase/migrations/`, tests in `supabase/tests/`), delete-account Edge Function, data export, legal drafts. Schema v3. Owner applies migrations per `SETUP_BACKEND.md` Step 7. RevenueCat/remote config deferred to Phase 7. Phase 4 in progress: a11y audit test, backend init in background, analytics events, feedback link, store/release guide in `RELEASE.md`; owner handles Play Console + testers.
 
 Map:
 - `lib/domain/` (pure Dart): `catalog/exercise.dart`, `plan/` (profile, plan, `plan_generator.dart`, `schedule.dart`), `progression/progression_engine.dart`, `gamification/` (`xp.dart`, `streak.dart`), `records/personal_records.dart`.
@@ -21,11 +21,14 @@ Gotchas:
 - Android has product flavors, so `flutter run`/`build` need `--flavor` (pubspec sets `default-flavor: dev`).
 - **Don't run `flutter build`** — the user runs builds; give them the command. `flutter test` / `flutter analyze` are fine.
 - `dart fix --apply` may also annotate family providers with `package:riverpod/src/...` types and add `riverpod: any` to pubspec — revert both; use the documented `// ignore: specify_nonobvious_property_types` instead.
+- Sync: every synced table must stay in `AppDatabase.syncedTables` (triggers + export + wipe use it) and in the SQL migration. New synced table = Drift migration + SQL migration + RLS via `private.make_synced`. Never hard-delete synced rows; set `deletedAt` + `updatedAt` and filter `deleted_at IS NULL` in reads.
 - Week/day math: always `Schedule.weekStart` / `Schedule.addDays` (calendar days), never `Duration(days: n)` — DST days aren't 24 h.
 - Riverpod is used **without codegen** (plain `Provider`/`StreamProvider`); no freezed/json_serializable. Drift is the only codegen (`*.g.dart`).
 - Widget tests that touch Drift: wrap in `tester.runAsync`, pump with real delays, and unmount + pump at the end (see `test/app_flow_test.dart`), or Drift's stream timers fail the test.
 - `Column` inside a `Row` in a bottom bar / sheet needs `mainAxisSize: MainAxisSize.min`, or it stretches to the full height (this blanked the workout screen once).
 - Catalog changes: edit `tool/build_catalog/curation.yaml`, rerun the build (uses the cached dataset; needs ffmpeg for WebP), commit `assets/catalog/`. `test/tool/catalog_integrity_test.dart` guards it.
+- Legal text lives in `assets/legal/*.md`; after editing run `python tool/build_legal.py` to regenerate `docs/*.html`.
+- Analytics: only via `analyticsProvider`; props must be in `analyticsAllowedProps` — never add health values.
 - App icon: `python tool/gen_icons.py` regenerates launcher PNGs + `store/play_icon_512.png` (placeholder mark).
 
 ## Source-of-truth docs (read before planning any work)

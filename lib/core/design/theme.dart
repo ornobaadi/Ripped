@@ -102,6 +102,11 @@ abstract final class AppTheme {
       onSurface: c.textPrimary,
       surfaceContainerHighest: c.surfaceRaised,
       outline: c.border,
+      // Selected chips and segmented buttons use the container pair.
+      secondaryContainer: c.surfaceRaised,
+      onSecondaryContainer: c.textPrimary,
+      primaryContainer: c.surfaceRaised,
+      onPrimaryContainer: c.textPrimary,
     );
     return ThemeData(
       colorScheme: scheme,
@@ -128,6 +133,18 @@ abstract final class AppTheme {
         builders: {
           TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
         },
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: c.surface,
+        selectedColor: c.surfaceRaised,
+        labelStyle: _style(14, 20, c.textPrimary, weight: FontWeight.w600),
+        secondaryLabelStyle: _style(
+          14,
+          20,
+          c.textPrimary,
+          weight: FontWeight.w600,
+        ),
+        side: BorderSide(color: c.border),
       ),
       splashFactory: InkRipple.splashFactory,
       visualDensity: VisualDensity.standard,

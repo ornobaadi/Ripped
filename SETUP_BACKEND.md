@@ -165,22 +165,54 @@ Send me a screenshot of the error if none of these fit.
    will have.
 4. Publish the OAuth consent screen (Step 2.4).
 
-## Next: the database (I'll prepare it)
+## Step 7: Database tables, security rules and account deletion (15 min)
 
-For backup/sync I'll write the tables and Row Level Security rules as SQL in
-`supabase/migrations/`. You'll apply them with:
+This creates the backup tables (each user can only ever see their own rows)
+and the function that deletes an account. You need Node.js (you already have
+it) and your Supabase login.
+
+From the project folder:
 
 ```bash
-npm install -g supabase
+npx supabase login
 ```
 ```bash
-supabase login
+npx supabase link --project-ref fjlsalyzvefhctjjkogc
 ```
-```bash
-supabase link --project-ref <your-project-ref>
-```
-```bash
-supabase db push
-```
+It asks for the database password you set when creating the project.
 
-The project ref is the part before `.supabase.co` in your project URL.
+```bash
+npx supabase db push
+```
+This applies `supabase/migrations/…_sync_schema.sql`.
+
+```bash
+npx supabase functions deploy delete-account
+```
+This deploys `supabase/functions/delete-account`. Supabase provides the
+server key to the function automatically; you don't paste it anywhere.
+
+### Check it worked
+
+1. Dashboard → **Table Editor**: 10 tables (`profiles`, `workouts`,
+   `workout_sets`, …), each marked **RLS enabled**.
+2. Dashboard → **Advisors → Security Advisor**: should show no errors.
+   Send me a screenshot of any warnings.
+3. On the phone: **You** → the account card should say **Backed up just now**
+   (tap **Back up now** if not). Then Table Editor → `workouts` shows your
+   workouts.
+4. Optional, needs Docker Desktop: the security test suite (user A can never
+   see user B's data):
+   ```bash
+   npx supabase start
+   ```
+   ```bash
+   npx supabase test db
+   ```
+
+### Two-phone test (Phase 3 exit check)
+
+Sign in with the same Google account on two phones (or a phone + emulator).
+Turn on airplane mode on both, log a workout on each, turn the network back
+on, and open the app on both. After a few seconds both should show both
+workouts in **Progress → History**.

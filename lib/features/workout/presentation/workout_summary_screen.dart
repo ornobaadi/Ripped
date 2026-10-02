@@ -224,6 +224,8 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
                 // Tap anywhere skips the intro animation.
                 onTap: () => _intro.value = 1,
                 behavior: HitTestBehavior.translucent,
+                // A visual shortcut only; not a control for screen readers.
+                excludeFromSemantics: true,
                 child: ListView(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   children: [

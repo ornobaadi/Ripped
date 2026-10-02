@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/features/settings/presentation/account_card.dart';
+import 'package:ripped/features/settings/presentation/data_privacy_tiles.dart';
 import 'package:ripped/l10n/l10n.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class YouScreen extends ConsumerWidget {
   const new({super.key});
@@ -72,7 +75,23 @@ class YouScreen extends ConsumerWidget {
             ),
             SectionHeader(l10n.sectionReminders),
             const _RemindersTiles(),
+            SectionHeader(l10n.sectionDataPrivacy),
+            const DataPrivacyTiles(),
             SectionHeader(l10n.sectionAbout),
+            if (ref.watch(appConfigProvider).supportEmail.isNotEmpty)
+              AppListTile(
+                icon: Icons.mail_outline,
+                title: l10n.sendFeedback,
+                subtitle: l10n.sendFeedbackSub,
+                onTap: () => launchUrl(
+                  Uri(
+                    scheme: 'mailto',
+                    path: ref.read(appConfigProvider).supportEmail,
+                    query:
+                        'subject=${Uri.encodeComponent(l10n.feedbackSubject)}',
+                  ),
+                ),
+              ),
             AppListTile(
               icon: Icons.health_and_safety_outlined,
               title: l10n.healthDisclaimer,
@@ -116,6 +135,9 @@ class _RemindersTiles extends ConsumerWidget {
       title: l10n.reminderTitle,
       body: l10n.reminderBody,
     );
+    if (ok && next.enabled) {
+      ref.read(analyticsProvider).track(AnalyticsEvent.remindersEnabled);
+    }
     if (!ok) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.notificationsDenied)));
     }

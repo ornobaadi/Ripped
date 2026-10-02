@@ -7,6 +7,7 @@ import 'package:ripped/features/exercise/presentation/exercise_detail_screen.dar
 import 'package:ripped/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:ripped/features/plan/presentation/plan_screen.dart';
 import 'package:ripped/features/progress/presentation/progress_screen.dart';
+import 'package:ripped/features/settings/presentation/legal_screen.dart';
 import 'package:ripped/features/settings/presentation/you_screen.dart';
 import 'package:ripped/features/today/presentation/today_screen.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
@@ -22,8 +23,10 @@ final onboardedProvider = Provider<ValueNotifier<bool>>((ref) {
   final notifier = ValueNotifier(ref.read(initialOnboardedProvider));
   ref
     ..listen(profileRowProvider, (_, next) {
-      final row = next.value;
-      if (row != null) notifier.value = row.onboardingDoneAt != null;
+      // Also flips back to onboarding when the profile is wiped.
+      if (next.hasValue) {
+        notifier.value = next.value?.onboardingDoneAt != null;
+      }
     })
     ..onDispose(notifier.dispose);
   return notifier;
@@ -89,6 +92,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/history/:id',
         builder: (_, state) =>
             WorkoutSummaryScreen(workoutId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/legal/:doc',
+        builder: (_, state) => LegalScreen(doc: state.pathParameters['doc']!),
       ),
       GoRoute(
         path: '/exercise/:id',

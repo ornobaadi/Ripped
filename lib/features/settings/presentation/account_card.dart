@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/auth/auth_service.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/sync/sync_controller.dart';
 import 'package:ripped/l10n/l10n.dart';
 
 /// Optional account (PRD 7.10). Hidden when no backend is configured.
@@ -25,6 +27,9 @@ class _AccountCardState extends ConsumerState<AccountCard> {
     final result = await ref.read(authServiceProvider).signInWithGoogle();
     if (!mounted) return;
     setState(() => _busy = false);
+    if (result == SignInResult.success) {
+      ref.read(analyticsProvider).track(AnalyticsEvent.signedIn);
+    }
     if (result == SignInResult.failed) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.signInFailed)));
     }
@@ -81,52 +86,109 @@ class _AccountCardState extends ConsumerState<AccountCard> {
                   ),
                 ],
               )
-            : Row(
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: c.surfaceRaised,
-                    foregroundImage: user.photoUrl == null
-                        ? null
-                        : NetworkImage(user.photoUrl!),
-                    child: Text(
-                      (user.name ?? user.email ?? '?').characters.first
-                          .toUpperCase(),
-                      style: text.labelLarge,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.name ?? l10n.signedIn,
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: c.surfaceRaised,
+                        foregroundImage: user.photoUrl == null
+                            ? null
+                            : NetworkImage(user.photoUrl!),
+                        child: Text(
+                          (user.name ?? user.email ?? '?').characters.first
+                              .toUpperCase(),
                           style: text.labelLarge,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (user.email != null)
-                          Text(
-                            user.email!,
-                            style: text.bodySmall?.copyWith(
-                              color: c.textSecondary,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user.name ?? l10n.signedIn,
+                              style: text.labelLarge,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                      ],
-                    ),
+                            if (user.email != null)
+                              Text(
+                                user.email!,
+                                style: text.bodySmall?.copyWith(
+                                  color: c.textSecondary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _signOut,
+                        style: TextButton.styleFrom(
+                          foregroundColor: c.textSecondary,
+                        ),
+                        child: Text(l10n.signOut),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: _signOut,
-                    style: TextButton.styleFrom(
-                      foregroundColor: c.textSecondary,
-                    ),
-                    child: Text(l10n.signOut),
-                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  const _SyncLine(),
                 ],
               ),
       ),
     );
+  }
+}
+
+/// "Backed up 2 min ago" + manual trigger.
+class _SyncLine extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final c = context.colors;
+    final sync = ref.watch(syncControllerProvider);
+    final (icon, label) = switch (sync.status) {
+      SyncStatus.syncing => (Icons.sync, l10n.syncing),
+      SyncStatus.failed => (Icons.cloud_off_outlined, l10n.syncFailed),
+      SyncStatus.otherAccount => (Icons.info_outline, l10n.syncOtherAccount),
+      SyncStatus.idle when sync.lastSyncedAt != null => (
+        Icons.cloud_done_outlined,
+        l10n.syncedAgo(_ago(l10n, sync.lastSyncedAt!)),
+      ),
+      SyncStatus.idle => (Icons.cloud_queue, l10n.syncFailed),
+    };
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: c.textSecondary),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: c.textSecondary),
+          ),
+        ),
+        if (sync.status != SyncStatus.syncing &&
+            sync.status != SyncStatus.otherAccount)
+          TextButton(
+            onPressed: () =>
+                ref.read(syncControllerProvider.notifier).requestSync(),
+            child: Text(l10n.syncNow),
+          ),
+      ],
+    );
+  }
+
+  static String _ago(AppLocalizations l10n, DateTime t) {
+    final d = DateTime.now().difference(t);
+    if (d.inMinutes < 1) return l10n.agoJustNow;
+    if (d.inHours < 1) return l10n.agoMinutes(d.inMinutes);
+    if (d.inDays < 1) return l10n.agoHours(d.inHours);
+    return l10n.agoDays(d.inDays);
   }
 }

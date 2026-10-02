@@ -25,6 +25,9 @@ abstract interface class AuthService {
   Stream<AppUser?> get userChanges;
   Future<SignInResult> signInWithGoogle();
   Future<void> signOut();
+
+  /// Deletes the account and all server data, then signs out.
+  Future<void> deleteAccount();
 }
 
 /// Used when no backend is configured: always signed out.
@@ -45,6 +48,9 @@ class OfflineAuthService implements AuthService {
 
   @override
   Future<void> signOut() async {}
+
+  @override
+  Future<void> deleteAccount() async {}
 }
 
 /// Native Google sign-in (Android Credential Manager) whose ID token is
@@ -108,6 +114,15 @@ class SupabaseAuthService implements AuthService {
     } on Object {
       // Already signed out of Google; the Supabase session is what matters.
     }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    final res = await _client.functions.invoke('delete-account');
+    if (res.status != 200) {
+      throw StateError('Account deletion failed (${res.status})');
+    }
+    await signOut();
   }
 
   static AppUser? _map(User? u) => u == null

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -68,7 +69,12 @@ class PlanScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: AppButton(
                   label: l10n.looksGood,
-                  onPressed: () => context.go('/'),
+                  onPressed: () {
+                    ref
+                        .read(analyticsProvider)
+                        .track(AnalyticsEvent.planAccepted);
+                    context.go('/');
+                  },
                 ),
               ),
             )
