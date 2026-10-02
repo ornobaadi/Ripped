@@ -102,7 +102,7 @@ Scope
 - [ ] Supabase projects (staging/prod); local dev via Supabase CLI
 - [ ] Postgres schema mirroring Drift + **RLS on every table** + RLS tests (user A ≠ user B)
 - [ ] 2-day spike: PowerSync vs custom outbox sync → decide → implement
-- [ ] Auth: Sign in with Apple, Google, email OTP; anonymous data merge on first sign-in
+- [ ] Auth: Google sign-in (done in app, pending owner's Google Cloud setup); Apple later with iOS; email OTP dropped; anonymous data merge on first sign-in
 - [ ] Secure token storage; sign-out wipes local session
 - [ ] In-app account deletion (Edge Function) + local wipe
 - [ ] Data export (JSON/CSV)

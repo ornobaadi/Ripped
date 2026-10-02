@@ -73,3 +73,9 @@ Records need a previous session to beat; otherwise every first workout would be 
 - **free-exercise-db-api videos: not usable.** The author states they bought the videos from an Instagram ad and can't verify the source ("use with caution"). Only the code and metadata are MIT.
 - **RepDB: legally clean, paid.** The Standard license ($499 one-time, 609 exercises) includes looping animations as transparent animated WebP, which Flutter plays natively with no extra package, plus a commercial-app license. The $299 Starter tier has stills only. The free preview isn't licensed for production.
 - **Plan:** stay on free-exercise-db photos until the owner decides. If RepDB is bought, add a `sources/repdb.dart` adapter; the schema, UI and loader already handle `image | gif | video` media.
+
+## 2026-10-02 · One Supabase project, Google sign-in only
+Prod-only Supabase project for now; `env/dev.json` points at it too (dev test data shares the database). Sign-in is native Google via Credential Manager (`google_sign_in` 7) → `signInWithIdToken`; email OTP is dropped. Apple sign-in comes back only with iOS.
+**Why:** owner's choice; fewer moving parts for an Android-only launch.
+**Keys:** the app uses the new **publishable** key (`SUPABASE_PUBLISHABLE_KEY`); `supabase_flutter` deprecated `anonKey`. The secret key never enters the app.
+**Startup:** Supabase init is skipped without config and capped at 3 s; any failure falls back to offline (`OfflineAuthService`).

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ripped/core/auth/auth_service.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/profile_mapping.dart';
@@ -169,3 +170,16 @@ Future<bool> applyReminders(
   );
   return true;
 }
+
+// Accounts (optional).
+
+/// Overridden in bootstrap; offline (always signed out) by default.
+final authServiceProvider = Provider<AuthService>(
+  (ref) => const OfflineAuthService(),
+);
+
+final currentUserProvider = StreamProvider<AppUser?>((ref) async* {
+  final auth = ref.watch(authServiceProvider);
+  yield auth.currentUser;
+  yield* auth.userChanges;
+});

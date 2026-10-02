@@ -70,3 +70,11 @@ key.properties
 Thumbs.db
 desktop.ini
 .vscode/
+
+# Any local env variants (.env.local, .env.prod...); only examples are shared
+.env.*
+!.env.example
+
+# Supabase CLI local state (created by `supabase link` / `supabase start`)
+/supabase/.temp/
+/supabase/.branches/

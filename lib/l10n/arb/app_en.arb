@@ -513,5 +513,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "backupTitle": "Back up your progress",
+  "backupMessage": "Sign in so your workouts are safe if you change phones. The app works fully without an account.",
+  "continueWithGoogle": "Continue with Google",
+  "signingIn": "Signing in…",
+  "signInFailed": "Couldn't sign in with Google. Check your connection and try again.",
+  "signOut": "Sign out",
+  "signOutConfirm": "Sign out? Your workouts stay on this phone.",
+  "signedIn": "Signed in"
 }

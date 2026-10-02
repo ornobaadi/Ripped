@@ -9,6 +9,7 @@ import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/domain/plan/profile.dart';
+import 'package:ripped/features/settings/presentation/account_card.dart';
 import 'package:ripped/l10n/l10n.dart';
 
 class YouScreen extends ConsumerWidget {
@@ -40,6 +41,7 @@ class YouScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
             Text(l10n.youTitle, style: text.titleLarge),
+            const AccountCard(),
             SectionHeader(l10n.sectionTraining),
             AppListTile(
               icon: Icons.calendar_view_week_outlined,

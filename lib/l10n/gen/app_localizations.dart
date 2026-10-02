@@ -1305,6 +1305,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{done}/{target}'**
   String weekDoneOfTarget(int done, int target);
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up your progress'**
+  String get backupTitle;
+
+  /// No description provided for @backupMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in so your workouts are safe if you change phones. The app works fully without an account.'**
+  String get backupMessage;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get signingIn;
+
+  /// No description provided for @signInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in with Google. Check your connection and try again.'**
+  String get signInFailed;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// No description provided for @signOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out? Your workouts stay on this phone.'**
+  String get signOutConfirm;
+
+  /// No description provided for @signedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get signedIn;
 }
 
 class _AppLocalizationsDelegate

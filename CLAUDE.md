@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 **Ripped** (Dart package `ripped`, app id / bundle id `com.ornobaadi.ripped`): a minimalist, local-first, personal workout app. **Android first** (Google Play); iOS later. Global, English only. Onboard → get a generated plan → log workouts → adaptive progression → habit/gamification.
 
-**Current state:** Phases 0–2 implemented. Phase 1 core loop (onboarding → plan → Today → workout → summary → history, offline). Phase 2: XP ledger + levels, weekly streak + shields, PRs, celebration, Progress tab (streak calendar, PRs, trend chart), reminders, comeback, volume-spike note. Schema v2. Open exit items: on-device Patrol E2E, personal 2-week trial, friends test. Next: Phase 3 (accounts/sync) — needs the owner's Supabase setup (`SETUP_BACKEND.md`).
+**Current state:** Phases 0–2 implemented. Phase 1 core loop (onboarding → plan → Today → workout → summary → history, offline). Phase 2: XP ledger + levels, weekly streak + shields, PRs, celebration, Progress tab (streak calendar, PRs, trend chart), reminders, comeback, volume-spike note. Schema v2. Open exit items: on-device Patrol E2E, personal 2-week trial, friends test. Phase 3 in progress: optional Google sign-in (`core/auth/auth_service.dart`, `features/settings/presentation/account_card.dart`) on a single prod Supabase project; owner is doing the Google Cloud/Supabase steps in `SETUP_BACKEND.md`. Next: sync tables + RLS in `supabase/migrations/`.
 
 Map:
 - `lib/domain/` (pure Dart): `catalog/exercise.dart`, `plan/` (profile, plan, `plan_generator.dart`, `schedule.dart`), `progression/progression_engine.dart`, `gamification/` (`xp.dart`, `streak.dart`), `records/personal_records.dart`.
@@ -80,7 +80,7 @@ supabase/{migrations,functions}/
 1. **`lib/domain/` is pure Dart** — no `package:flutter` imports. All plan/progression/gamification/PR logic lives here and is unit-tested (≥90% coverage). Write tests first for domain logic.
 2. **Local-first:** the network is never on the critical path of a workout. Startup does no network work. Persist active workout state after every set (single DB transaction).
 3. **Every feature ships with tests.** Every Drift schema change gets a migration + migration test. Every component gets light/dark/200%-text golden tests and a semantics label.
-4. **Never commit secrets.** Env via `--dart-define-from-file` (git-ignored). Only the Supabase anon key may ship in the app; the service role key lives only in Edge Functions.
+4. **Never commit secrets.** The root `.env` holds the Supabase secret key for reference only; never read it from app code. Env via `--dart-define-from-file` (git-ignored). Only the Supabase anon key may ship in the app; the service role key lives only in Edge Functions.
 5. **RLS on every new Postgres table**, deny by default, with own-rows policies (template in architecture.md §8) and two-user RLS tests. `subscriptions` is client read-only.
 6. **Data conventions:** client-generated UUIDv7 ids; every user table has `user_id`, `created_at`, `updated_at`, `deleted_at` (soft delete). Weights stored in **kg**, converted at the UI edge. Level/XP/streaks are **derived** from `xp_events` (append-only) and `streak_weeks`, never stored.
 7. **Privacy:** never log or send health values, emails, or tokens to analytics/Sentry. Collect minimal data.

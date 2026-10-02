@@ -727,4 +727,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String weekDoneOfTarget(int done, int target) {
     return '$done/$target';
   }
+
+  @override
+  String get backupTitle => 'Back up your progress';
+
+  @override
+  String get backupMessage =>
+      'Sign in so your workouts are safe if you change phones. The app works fully without an account.';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get signingIn => 'Signing in…';
+
+  @override
+  String get signInFailed =>
+      'Couldn\'t sign in with Google. Check your connection and try again.';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get signOutConfirm => 'Sign out? Your workouts stay on this phone.';
+
+  @override
+  String get signedIn => 'Signed in';
 }

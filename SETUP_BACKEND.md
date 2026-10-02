@@ -1,116 +1,174 @@
-# Backend setup (Phase 3): what you do by hand
+# Backend setup: Supabase + Google sign-in
 
-Phase 3 adds sign-in, cloud backup/sync and account deletion. The app keeps
-working fully offline; the backend is only for backup and moving between
-phones. Everything below is a one-time setup in web dashboards. **Never paste
-secrets into chat or commit them**: they go only in the git-ignored
-`env/*.json` files or stay in the dashboards.
+Setup: **one Supabase project (prod)**, **Google sign-in only**, Android only.
+The app keeps working fully offline. Signing in is optional and only for
+backup/sync.
 
-Time needed: about 45–60 minutes.
+Never paste keys into chat or commit them. Public values go in the
+git-ignored `env/*.json` files; secrets stay in the dashboards.
 
 ---
 
-## 1. Supabase projects (database + auth)
+## ✅ Step 0: Supabase project + keys (done)
 
-1. Go to <https://supabase.com> → sign up (GitHub login is easiest).
-2. **New project** → name `ripped-dev`, pick the region closest to most
-   of your users, generate a strong database password, and save it in your
-   password manager. Plan: Free.
-3. Repeat for `ripped-prod`. (The free plan allows two active projects.
-   Free projects pause after a week without traffic. That's fine for dev;
-   upgrade prod before launch.)
-4. In each project: **Project Settings → API** (or **Data API**). Copy:
-   - **Project URL** (`https://xxxx.supabase.co`)
-   - **anon / publishable key** (public by design; Row Level Security protects
-     data)
-   - ⚠️ Do **not** copy the `service_role` / secret key anywhere in the app.
-5. Put them in the env files (copy from the `.example.json` if missing):
+Your project URL and **publishable** key are in `env/prod.json` (and
+`env/dev.json`, which points to the same project for now, so test data from
+the dev flavor lands in the same database).
 
-   `env/dev.json` (from `ripped-dev`) and `env/prod.json` (from `ripped-prod`):
-   ```json
-   {
-     "SUPABASE_URL": "https://xxxx.supabase.co",
-     "SUPABASE_ANON_KEY": "eyJ...",
-     "SENTRY_DSN": "",
-     "GOOGLE_WEB_CLIENT_ID": ""
-   }
-   ```
+`.env` in the project root isn't read by the app. It holds your
+`SUPABASE_SECRET_KEY`, which must **never** be in the app or in git. It's
+git-ignored, but the safest thing is to delete that line: the app doesn't
+need it, and server code (Edge Functions) gets it from Supabase directly.
 
-## 2. Email sign-in with a one-time code
+---
 
-In each Supabase project:
+## Step 1: Get your app's SHA-1 fingerprints (5 min)
 
-1. **Authentication → Sign In / Providers → Email**: enabled, "Confirm email" on.
-2. **Authentication → Email Templates → Magic Link**: make the body show the
-   code, for example:
-   `Your Ripped sign-in code is {{ .Token }}. It expires in 1 hour.`
-3. **Authentication → URL Configuration → Redirect URLs**: add
-   `com.ornobaadi.ripped://login-callback`
-4. Before public launch: **Project Settings → Authentication → SMTP**. Set up
-   a real email sender (for example Resend, free tier). Supabase's built-in
-   sender is rate-limited to a few emails per hour.
+Google only lets apps it recognises sign in. It identifies the app by package
+name + signing certificate fingerprint (SHA-1).
 
-## 3. Google sign-in (Android)
-
-You need a **release keystore** first, because Google checks the app's
-signing fingerprint.
-
-### 3a. Create the release keystore (once, keep it forever)
+From the project folder:
 
 ```bash
-keytool -genkey -v -keystore %USERPROFILE%\ripped-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias ripped
+cd android
+```
+```bash
+./gradlew signingReport
 ```
 
-Back up the `.jks` file and both passwords. If you lose them you can't
-update the app with that key. Then create `android/key.properties`
-(git-ignored):
+Find the blocks for **`devDebug`** and **`prodRelease`** and note:
 
-```properties
-storeFile=C:\\Users\\<you>\\ripped-release.jks
-storePassword=<password>
-keyAlias=ripped
-keyPassword=<password>
-```
+- `Variant: devDebug` → **SHA1** (your debug key)
+- `Variant: prodRelease` → **SHA1**. Right now this is the same debug key,
+  because no release keystore exists yet (`android/key.properties`).
 
-### 3b. Get the SHA-1 fingerprints
+If gradlew doesn't work, use the JDK's keytool:
 
 ```bash
 keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androiddebugkey -storepass android -keypass android
 ```
-```bash
-keytool -list -v -keystore %USERPROFILE%\ripped-release.jks -alias ripped
+
+> Later, when you create the release keystore for Play (section "Before
+> Play release" below), you add its SHA-1 too. Nothing else changes.
+
+## Step 2: Google Cloud: consent screen (10 min)
+
+1. Open <https://console.cloud.google.com> → top bar project picker →
+   **New project** → name `Ripped` → Create → select it.
+2. Left menu **APIs & Services → OAuth consent screen** (newer UI: **Google
+   Auth Platform → Branding**):
+   - App name: **Ripped**
+   - User support email: your email
+   - Audience: **External**
+   - Developer contact: your email → Save.
+3. **Data access / Scopes**: add `openid`, `.../auth/userinfo.email`,
+   `.../auth/userinfo.profile` → Save.
+4. **Audience / Test users**: add your own Google account (and friends who
+   will test). While the app is in "Testing", only these accounts can sign
+   in. Click **Publish app** before the public launch.
+
+## Step 3: Google Cloud: OAuth clients (10 min)
+
+**APIs & Services → Credentials → + Create credentials → OAuth client ID**.
+Create these:
+
+| # | Application type | Name | Package name | SHA-1 |
+|---|---|---|---|---|
+| A | **Web application** | Ripped Supabase | – | – |
+| B | **Android** | Ripped (prod) | `com.ornobaadi.ripped` | prodRelease SHA-1 from Step 1 |
+| C | **Android** | Ripped (dev) | `com.ornobaadi.ripped.dev` | devDebug SHA-1 from Step 1 |
+
+- For **A (Web)**: no origins or redirect URIs are needed. After creating, copy
+  its **Client ID** and **Client secret**.
+- **B and C** just need to exist; the app never uses their IDs directly.
+- If B and C have the same SHA-1 right now, that's expected.
+
+> Why a *Web* client for an Android app? Supabase verifies the Google ID
+> token, and that token is issued for the Web client ID. The Android clients
+> prove the request really comes from your signed app.
+
+## Step 4: Supabase: enable Google (3 min)
+
+<https://supabase.com/dashboard> → your project → **Authentication → Sign In /
+Providers → Google**:
+
+- **Enable Sign in with Google**: on
+- **Client IDs**: paste the **Web** client ID (A)
+- **Client Secret (for OAuth)**: paste the **Web** client secret (A)
+- **Skip nonce checks**: leave **off**
+- Save
+
+Also check **Authentication → Sign In / Providers → Email** is on (Supabase
+uses it internally to store the account's email). You can turn **off**
+"Allow new users to sign up" for email, so Google is the only way in.
+
+## Step 5: Put the Web client ID in the app (1 min)
+
+In `env/prod.json` **and** `env/dev.json`, set:
+
+```json
+"GOOGLE_WEB_CLIENT_ID": "1234567890-abc...apps.googleusercontent.com"
 ```
 
-After your first Play upload, also copy the **App signing key SHA-1** from
-Play Console → your app → **Test and release → App integrity**. Google Play
-re-signs the app with its own key.
+Use the **Web** client ID (A), not an Android one. It isn't a secret, but
+it's kept in env with the rest of the config. The client **secret** goes only
+into Supabase (Step 4), never into the app.
 
-### 3c. Google Cloud
+## Step 6: Build and try it
 
-1. <https://console.cloud.google.com> → create project `Ripped`.
-2. **APIs & Services → OAuth consent screen**: External, app name "Ripped",
-   your support email, scopes `openid`, `email`, `profile`. Add yourself as a
-   test user while it's in testing.
-3. **Credentials → Create credentials → OAuth client ID**:
-   - Type **Web application**, name "Ripped Supabase". Copy its **Client ID**
-     and **Client secret**.
-   - Type **Android**, package `com.ornobaadi.ripped`, SHA-1 = release key.
-   - Type **Android**, package `com.ornobaadi.ripped`, SHA-1 = Play app
-     signing key (after first upload).
-   - Type **Android**, package `com.ornobaadi.ripped.dev`, SHA-1 = debug key.
-4. In **each Supabase project → Authentication → Sign In / Providers →
-   Google**: enable, paste the **Web** client ID and secret, and add the Web
-   client ID to "Client IDs" (authorized client IDs).
-5. Put the **Web client ID** (not the secret) in `GOOGLE_WEB_CLIENT_ID` in
-   `env/dev.json` and `env/prod.json`.
+```bash
+flutter run --flavor dev -t lib/main_dev.dart --dart-define-from-file=env/dev.json
+```
 
-Apple sign-in is skipped for now. It's only required once the app ships on
-iOS with Google sign-in.
+or install a release APK:
 
-## 4. Supabase CLI (to apply the database tables I write)
+```bash
+flutter build apk --release --flavor prod -t lib/main_prod.dart --dart-define-from-file=env/prod.json
+```
 
-I'll write the tables and security rules as SQL files in
-`supabase/migrations/`. You apply them with the CLI:
+Open **You** → **Continue with Google** → pick your account. You should see
+your name and email on the card, and a new row under Supabase →
+**Authentication → Users**.
+
+### If sign-in fails
+
+| Symptom | Usual cause |
+|---|---|
+| "Couldn't sign in…" immediately, nothing pops up | SHA-1 or package name in the Android client (B/C) doesn't match the build you installed. Dev flavor = `.dev` package + debug SHA-1. |
+| Account picker shows, then fails | Supabase Google provider: Web client ID/secret wrong, or the ID isn't in "Client IDs". |
+| "Access blocked" / not allowed | Your Google account isn't a **test user** on the consent screen (Step 2.4). |
+| No Account card in **You** at all | `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` empty in the env file you built with. |
+| Card shows, button does nothing useful | `GOOGLE_WEB_CLIENT_ID` empty in that env file. |
+
+Send me a screenshot of the error if none of these fit.
+
+---
+
+## Before Play release (later, not needed today)
+
+1. Create the release keystore and keep it backed up forever:
+   ```bash
+   keytool -genkey -v -keystore %USERPROFILE%\ripped-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias ripped
+   ```
+   Then create `android/key.properties` (git-ignored):
+   ```properties
+   storeFile=C:\\Users\\<you>\\ripped-release.jks
+   storePassword=<password>
+   keyAlias=ripped
+   keyPassword=<password>
+   ```
+2. Add another **Android** OAuth client for `com.ornobaadi.ripped` with the
+   release keystore's SHA-1 (`./gradlew signingReport` → prodRelease).
+3. After the first Play upload: Play Console → **Test and release → App
+   integrity** → copy the **App signing key SHA-1** → add one more Android
+   OAuth client with it. Play re-signs your app, so this is the one real users
+   will have.
+4. Publish the OAuth consent screen (Step 2.4).
+
+## Next: the database (I'll prepare it)
+
+For backup/sync I'll write the tables and Row Level Security rules as SQL in
+`supabase/migrations/`. You'll apply them with:
 
 ```bash
 npm install -g supabase
@@ -119,25 +177,10 @@ npm install -g supabase
 supabase login
 ```
 ```bash
-supabase link --project-ref <dev-project-ref>
+supabase link --project-ref <your-project-ref>
 ```
 ```bash
 supabase db push
 ```
 
-The project ref is the `xxxx` in your project URL. Repeat `link` + `db push`
-for prod when releasing.
-
-## 5. Optional: Sentry (crash reports)
-
-<https://sentry.io> → new project → platform **Flutter** → copy the **DSN**
-into `SENTRY_DSN` in `env/prod.json`. The app only enables Sentry when a DSN
-is set, and sends no personal data.
-
----
-
-## When you're done
-
-Tell me "backend ready". I don't need any keys in chat; the app reads them
-from your `env/*.json` files. If something in a dashboard looks different
-from these steps (they change their UI often), send a screenshot.
+The project ref is the part before `.supabase.co` in your project URL.
