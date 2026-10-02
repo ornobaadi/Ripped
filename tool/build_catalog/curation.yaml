@@ -1,0 +1,1499 @@
+# Ripped exercise curation (architecture.md 4.1 + 9).
+# Our layer on top of source data: stable ids, movement pattern, joint stress,
+# substitutes and priority. Source ids are validated at build time.
+#
+# Fields: id (our stable lower_snake_case id, never rename once shipped),
+# source, source_id, pattern, priority (higher = preferred by plan generator),
+# optional: name, level, equipment, joint_stress, substitutes, bodyweight,
+# unilateral.
+#
+# 181 exercises. Core set first (hand-picked substitutes), then the extended set.
+
+sources:
+  free_exercise_db:
+    ref: f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5
+
+exercises:
+  # --- squat ---
+  - id: barbell_back_squat
+    source: free_exercise_db
+    source_id: Barbell_Squat
+    name: Barbell back squat
+    pattern: squat
+    priority: 90
+    joint_stress: [knee, lower_back]
+    substitutes: [goblet_squat, leg_press, bodyweight_squat]
+  - id: goblet_squat
+    source: free_exercise_db
+    source_id: Goblet_Squat
+    name: Goblet squat
+    pattern: squat
+    priority: 85
+    joint_stress: [knee]
+    substitutes: [bodyweight_squat, leg_press]
+  - id: bodyweight_squat
+    source: free_exercise_db
+    source_id: Bodyweight_Squat
+    name: Bodyweight squat
+    pattern: squat
+    priority: 60
+    bodyweight: true
+    joint_stress: [knee]
+    substitutes: [goblet_squat]
+  - id: leg_press
+    source: free_exercise_db
+    source_id: Leg_Press
+    name: Leg press
+    pattern: squat
+    priority: 70
+    joint_stress: [knee]
+    substitutes: [goblet_squat]
+
+  # --- hinge ---
+  - id: barbell_deadlift
+    source: free_exercise_db
+    source_id: Barbell_Deadlift
+    name: Deadlift
+    pattern: hinge
+    priority: 85
+    joint_stress: [lower_back]
+    substitutes: [romanian_deadlift, hip_thrust]
+  - id: romanian_deadlift
+    source: free_exercise_db
+    source_id: Romanian_Deadlift
+    name: Romanian deadlift
+    pattern: hinge
+    priority: 90
+    joint_stress: [lower_back]
+    substitutes: [hip_thrust, glute_bridge]
+  - id: hip_thrust
+    source: free_exercise_db
+    source_id: Barbell_Hip_Thrust
+    name: Hip thrust
+    pattern: hinge
+    priority: 75
+    substitutes: [glute_bridge]
+  - id: glute_bridge
+    source: free_exercise_db
+    source_id: Butt_Lift_Bridge
+    name: Glute bridge
+    pattern: hinge
+    priority: 55
+    bodyweight: true
+    substitutes: [hip_thrust]
+
+  # --- lunge ---
+  - id: dumbbell_lunge
+    source: free_exercise_db
+    source_id: Dumbbell_Lunges
+    name: Dumbbell lunge
+    pattern: lunge
+    priority: 80
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_step_up]
+  - id: dumbbell_step_up
+    source: free_exercise_db
+    source_id: Dumbbell_Step_Ups
+    name: Dumbbell step-up
+    pattern: lunge
+    priority: 70
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge]
+
+  # --- horizontal push ---
+  - id: barbell_bench_press
+    source: free_exercise_db
+    source_id: Barbell_Bench_Press_-_Medium_Grip
+    name: Bench press
+    pattern: horizontal_push
+    priority: 90
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_bench_press, push_up]
+  - id: dumbbell_bench_press
+    source: free_exercise_db
+    source_id: Dumbbell_Bench_Press
+    name: Dumbbell bench press
+    pattern: horizontal_push
+    priority: 85
+    joint_stress: [shoulder]
+    substitutes: [push_up, barbell_bench_press]
+  - id: push_up
+    source: free_exercise_db
+    source_id: Pushups
+    name: Push-up
+    pattern: horizontal_push
+    priority: 80
+    bodyweight: true
+    joint_stress: [wrist, shoulder]
+    substitutes: [dumbbell_bench_press]
+
+  # --- vertical push ---
+  - id: overhead_press
+    source: free_exercise_db
+    source_id: Standing_Military_Press
+    name: Overhead press
+    pattern: vertical_push
+    priority: 85
+    joint_stress: [shoulder, lower_back]
+    substitutes: [dumbbell_shoulder_press]
+  - id: dumbbell_shoulder_press
+    source: free_exercise_db
+    source_id: Dumbbell_Shoulder_Press
+    name: Dumbbell shoulder press
+    pattern: vertical_push
+    priority: 85
+    joint_stress: [shoulder]
+    substitutes: [overhead_press]
+
+  # --- horizontal pull ---
+  - id: barbell_row
+    source: free_exercise_db
+    source_id: Bent_Over_Barbell_Row
+    name: Barbell row
+    pattern: horizontal_pull
+    priority: 80
+    joint_stress: [lower_back]
+    substitutes: [one_arm_dumbbell_row, seated_cable_row]
+  - id: one_arm_dumbbell_row
+    source: free_exercise_db
+    source_id: One-Arm_Dumbbell_Row
+    name: One-arm dumbbell row
+    pattern: horizontal_pull
+    priority: 90
+    unilateral: true
+    substitutes: [seated_cable_row, inverted_row]
+  - id: seated_cable_row
+    source: free_exercise_db
+    source_id: Seated_Cable_Rows
+    name: Seated cable row
+    pattern: horizontal_pull
+    priority: 80
+    substitutes: [one_arm_dumbbell_row]
+  - id: inverted_row
+    source: free_exercise_db
+    source_id: Inverted_Row
+    name: Inverted row
+    pattern: horizontal_pull
+    priority: 70
+    bodyweight: true
+    substitutes: [one_arm_dumbbell_row]
+    equipment: other
+
+  # --- vertical pull ---
+  - id: pull_up
+    source: free_exercise_db
+    source_id: Pullups
+    name: Pull-up
+    pattern: vertical_pull
+    priority: 85
+    bodyweight: true
+    joint_stress: [shoulder, elbow]
+    substitutes: [chin_up, lat_pulldown]
+    equipment: pull-up bar
+  - id: chin_up
+    source: free_exercise_db
+    source_id: Chin-Up
+    name: Chin-up
+    pattern: vertical_pull
+    priority: 80
+    bodyweight: true
+    joint_stress: [elbow]
+    substitutes: [pull_up, lat_pulldown]
+    equipment: pull-up bar
+  - id: lat_pulldown
+    source: free_exercise_db
+    source_id: Wide-Grip_Lat_Pulldown
+    name: Lat pulldown
+    pattern: vertical_pull
+    priority: 85
+    substitutes: [pull_up]
+
+  # --- carry ---
+  - id: farmers_walk
+    source: free_exercise_db
+    source_id: Farmers_Walk
+    name: Farmer's walk
+    pattern: carry
+    priority: 70
+    timed: true
+
+  # --- core ---
+  - id: plank
+    source: free_exercise_db
+    source_id: Plank
+    name: Plank
+    pattern: core_anti_extension
+    priority: 80
+    bodyweight: true
+    substitutes: [hanging_leg_raise]
+    timed: true
+  - id: hanging_leg_raise
+    source: free_exercise_db
+    source_id: Hanging_Leg_Raise
+    name: Hanging leg raise
+    pattern: core_anti_extension
+    priority: 65
+    bodyweight: true
+    joint_stress: [shoulder]
+    substitutes: [plank]
+    equipment: pull-up bar
+  - id: russian_twist
+    source: free_exercise_db
+    source_id: Russian_Twist
+    name: Russian twist
+    pattern: core_rotation
+    priority: 60
+    joint_stress: [lower_back]
+
+  # --- calf ---
+  - id: standing_calf_raise
+    source: free_exercise_db
+    source_id: Standing_Calf_Raises
+    name: Standing calf raise
+    pattern: calf
+    priority: 70
+
+  # --- isolation ---
+  - id: barbell_curl
+    source: free_exercise_db
+    source_id: Barbell_Curl
+    name: Barbell curl
+    pattern: isolation_arm
+    priority: 70
+    joint_stress: [wrist, elbow]
+    substitutes: [dumbbell_curl]
+  - id: dumbbell_curl
+    source: free_exercise_db
+    source_id: Dumbbell_Bicep_Curl
+    name: Dumbbell curl
+    pattern: isolation_arm
+    priority: 75
+    substitutes: [barbell_curl]
+  - id: triceps_pushdown
+    source: free_exercise_db
+    source_id: Triceps_Pushdown
+    name: Triceps pushdown
+    pattern: isolation_arm
+    priority: 70
+    joint_stress: [elbow]
+    substitutes: [bench_dip]
+  - id: bench_dip
+    source: free_exercise_db
+    source_id: Bench_Dips
+    name: Bench dip
+    pattern: isolation_arm
+    priority: 55
+    bodyweight: true
+    joint_stress: [shoulder]
+    substitutes: [triceps_pushdown]
+  - id: lateral_raise
+    source: free_exercise_db
+    source_id: Side_Lateral_Raise
+    name: Lateral raise
+    pattern: isolation_arm
+    priority: 70
+    joint_stress: [shoulder]
+  - id: leg_extension
+    source: free_exercise_db
+    source_id: Leg_Extensions
+    name: Leg extension
+    pattern: isolation_leg
+    priority: 50
+    joint_stress: [knee]
+  - id: lying_leg_curl
+    source: free_exercise_db
+    source_id: Lying_Leg_Curls
+    name: Lying leg curl
+    pattern: isolation_leg
+    priority: 60
+
+  # --- extended set (substitutes ranked by pattern + shared primary muscles) ---
+  - id: front_squat
+    source: free_exercise_db
+    source_id: Front_Barbell_Squat
+    name: "Front squat"
+    pattern: squat
+    priority: 70
+    joint_stress: [knee, wrist]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: hack_squat
+    source: free_exercise_db
+    source_id: Hack_Squat
+    name: "Hack squat"
+    pattern: squat
+    priority: 70
+    joint_stress: [knee]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: smith_machine_squat
+    source: free_exercise_db
+    source_id: Smith_Machine_Squat
+    name: "Smith machine squat"
+    pattern: squat
+    priority: 60
+    joint_stress: [knee]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: dumbbell_squat
+    source: free_exercise_db
+    source_id: Dumbbell_Squat
+    name: "Dumbbell squat"
+    pattern: squat
+    priority: 70
+    joint_stress: [knee]
+    substitutes: [barbell_back_squat, goblet_squat, front_squat]
+  - id: box_squat
+    source: free_exercise_db
+    source_id: Box_Squat
+    name: "Box squat"
+    pattern: squat
+    priority: 60
+    joint_stress: [knee, lower_back]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: plie_dumbbell_squat
+    source: free_exercise_db
+    source_id: Plie_Dumbbell_Squat
+    name: "Sumo dumbbell squat"
+    pattern: squat
+    priority: 65
+    joint_stress: [hip]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: kettlebell_front_squat
+    source: free_exercise_db
+    source_id: Front_Squats_With_Two_Kettlebells
+    name: "Double kettlebell front squat"
+    pattern: squat
+    priority: 60
+    joint_stress: [knee]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: narrow_stance_leg_press
+    source: free_exercise_db
+    source_id: Narrow_Stance_Leg_Press
+    name: "Narrow-stance leg press"
+    pattern: squat
+    priority: 50
+    joint_stress: [knee]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: band_squat
+    source: free_exercise_db
+    source_id: Squats_-_With_Bands
+    name: "Banded squat"
+    pattern: squat
+    priority: 45
+    joint_stress: [knee]
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: sit_to_stand
+    source: free_exercise_db
+    source_id: Sit_Squats
+    name: "Sit-to-stand squat"
+    pattern: squat
+    priority: 40
+    bodyweight: true
+    substitutes: [barbell_back_squat, goblet_squat, dumbbell_squat]
+  - id: trap_bar_deadlift
+    source: free_exercise_db
+    source_id: Trap_Bar_Deadlift
+    name: "Trap bar deadlift"
+    pattern: hinge
+    priority: 85
+    joint_stress: [lower_back]
+    substitutes: [romanian_deadlift, barbell_deadlift, dumbbell_romanian_deadlift]
+  - id: sumo_deadlift
+    source: free_exercise_db
+    source_id: Sumo_Deadlift
+    name: "Sumo deadlift"
+    pattern: hinge
+    priority: 70
+    joint_stress: [lower_back, hip]
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, kettlebell_swing]
+  - id: dumbbell_romanian_deadlift
+    source: free_exercise_db
+    source_id: Stiff-Legged_Dumbbell_Deadlift
+    name: "Dumbbell Romanian deadlift"
+    pattern: hinge
+    priority: 85
+    joint_stress: [lower_back]
+    substitutes: [romanian_deadlift, kettlebell_swing, sumo_deadlift]
+  - id: stiff_leg_deadlift
+    source: free_exercise_db
+    source_id: Stiff-Legged_Barbell_Deadlift
+    name: "Stiff-leg deadlift"
+    pattern: hinge
+    priority: 65
+    joint_stress: [lower_back]
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, kettlebell_swing]
+  - id: good_morning
+    source: free_exercise_db
+    source_id: Good_Morning
+    name: "Good morning"
+    pattern: hinge
+    priority: 55
+    joint_stress: [lower_back]
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, kettlebell_swing]
+  - id: rack_pull
+    source: free_exercise_db
+    source_id: Rack_Pulls
+    name: "Rack pull"
+    pattern: hinge
+    priority: 55
+    joint_stress: [lower_back]
+    substitutes: [barbell_deadlift, back_extension, romanian_deadlift]
+  - id: kettlebell_swing
+    source: free_exercise_db
+    source_id: One-Arm_Kettlebell_Swings
+    name: "Kettlebell swing"
+    pattern: hinge
+    priority: 75
+    joint_stress: [lower_back]
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, sumo_deadlift]
+  - id: single_leg_kettlebell_deadlift
+    source: free_exercise_db
+    source_id: Kettlebell_One-Legged_Deadlift
+    name: "Single-leg kettlebell deadlift"
+    pattern: hinge
+    priority: 60
+    unilateral: true
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, kettlebell_swing]
+  - id: barbell_glute_bridge
+    source: free_exercise_db
+    source_id: Barbell_Glute_Bridge
+    name: "Barbell glute bridge"
+    pattern: hinge
+    priority: 70
+    substitutes: [hip_thrust, cable_pull_through, glute_bridge]
+  - id: single_leg_glute_bridge
+    source: free_exercise_db
+    source_id: Single_Leg_Glute_Bridge
+    name: "Single-leg glute bridge"
+    pattern: hinge
+    priority: 55
+    bodyweight: true
+    unilateral: true
+    substitutes: [hip_thrust, barbell_glute_bridge, cable_pull_through]
+  - id: cable_pull_through
+    source: free_exercise_db
+    source_id: Pull_Through
+    name: "Cable pull-through"
+    pattern: hinge
+    priority: 60
+    substitutes: [hip_thrust, barbell_glute_bridge, glute_bridge]
+  - id: back_extension
+    source: free_exercise_db
+    source_id: Hyperextensions_Back_Extensions
+    name: "Back extension"
+    pattern: hinge
+    priority: 65
+    joint_stress: [lower_back]
+    substitutes: [barbell_deadlift, rack_pull, romanian_deadlift]
+  - id: glute_ham_raise
+    source: free_exercise_db
+    source_id: Glute_Ham_Raise
+    name: "Glute-ham raise"
+    pattern: hinge
+    priority: 50
+    joint_stress: [knee]
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, kettlebell_swing]
+  - id: band_good_morning
+    source: free_exercise_db
+    source_id: Band_Good_Morning
+    name: "Banded good morning"
+    pattern: hinge
+    priority: 45
+    substitutes: [romanian_deadlift, dumbbell_romanian_deadlift, kettlebell_swing]
+  - id: barbell_lunge
+    source: free_exercise_db
+    source_id: Barbell_Lunge
+    name: "Barbell lunge"
+    pattern: lunge
+    priority: 60
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_split_squat]
+  - id: walking_lunge
+    source: free_exercise_db
+    source_id: Bodyweight_Walking_Lunge
+    name: "Walking lunge"
+    pattern: lunge
+    priority: 70
+    bodyweight: true
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_split_squat]
+  - id: dumbbell_reverse_lunge
+    source: free_exercise_db
+    source_id: Dumbbell_Rear_Lunge
+    name: "Dumbbell reverse lunge"
+    pattern: lunge
+    priority: 80
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_split_squat, dumbbell_step_up]
+  - id: dumbbell_split_squat
+    source: free_exercise_db
+    source_id: Split_Squat_with_Dumbbells
+    name: "Dumbbell split squat"
+    pattern: lunge
+    priority: 80
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_step_up]
+  - id: split_squat
+    source: free_exercise_db
+    source_id: Split_Squats
+    name: "Split squat"
+    pattern: lunge
+    priority: 60
+    bodyweight: true
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_split_squat]
+  - id: barbell_step_up
+    source: free_exercise_db
+    source_id: Barbell_Step_Ups
+    name: "Barbell step-up"
+    pattern: lunge
+    priority: 50
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_split_squat]
+  - id: step_up_knee_raise
+    source: free_exercise_db
+    source_id: Step-up_with_Knee_Raise
+    name: "Step-up with knee raise"
+    pattern: lunge
+    priority: 55
+    bodyweight: true
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_split_squat]
+  - id: smith_split_squat
+    source: free_exercise_db
+    source_id: Smith_Single-Leg_Split_Squat
+    name: "Smith machine split squat"
+    pattern: lunge
+    priority: 55
+    unilateral: true
+    joint_stress: [knee]
+    substitutes: [dumbbell_lunge, dumbbell_reverse_lunge, dumbbell_split_squat]
+  - id: incline_bench_press
+    source: free_exercise_db
+    source_id: Barbell_Incline_Bench_Press_-_Medium_Grip
+    name: "Incline bench press"
+    pattern: horizontal_push
+    priority: 80
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: incline_dumbbell_press
+    source: free_exercise_db
+    source_id: Incline_Dumbbell_Press
+    name: "Incline dumbbell press"
+    pattern: horizontal_push
+    priority: 85
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_bench_press]
+  - id: close_grip_bench_press
+    source: free_exercise_db
+    source_id: Close-Grip_Barbell_Bench_Press
+    name: "Close-grip bench press"
+    pattern: horizontal_push
+    priority: 65
+    joint_stress: [wrist, elbow]
+    substitutes: [dumbbell_floor_press, close_grip_push_up, barbell_bench_press]
+  - id: decline_bench_press
+    source: free_exercise_db
+    source_id: Decline_Barbell_Bench_Press
+    name: "Decline bench press"
+    pattern: horizontal_push
+    priority: 50
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: dumbbell_floor_press
+    source: free_exercise_db
+    source_id: Dumbbell_Floor_Press
+    name: "Dumbbell floor press"
+    pattern: horizontal_push
+    priority: 65
+    substitutes: [close_grip_bench_press, close_grip_push_up, barbell_bench_press]
+  - id: neutral_grip_dumbbell_press
+    source: free_exercise_db
+    source_id: Dumbbell_Bench_Press_with_Neutral_Grip
+    name: "Neutral-grip dumbbell press"
+    pattern: horizontal_push
+    priority: 70
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: machine_chest_press
+    source: free_exercise_db
+    source_id: Machine_Bench_Press
+    name: "Machine chest press"
+    pattern: horizontal_push
+    priority: 75
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: smith_machine_bench_press
+    source: free_exercise_db
+    source_id: Smith_Machine_Bench_Press
+    name: "Smith machine bench press"
+    pattern: horizontal_push
+    priority: 55
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: cable_chest_press
+    source: free_exercise_db
+    source_id: Cable_Chest_Press
+    name: "Cable chest press"
+    pattern: horizontal_push
+    priority: 60
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: incline_push_up
+    source: free_exercise_db
+    source_id: Incline_Push-Up
+    name: "Incline push-up"
+    pattern: horizontal_push
+    priority: 70
+    bodyweight: true
+    joint_stress: [wrist]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: decline_push_up
+    source: free_exercise_db
+    source_id: Decline_Push-Up
+    name: "Decline push-up"
+    pattern: horizontal_push
+    priority: 60
+    bodyweight: true
+    joint_stress: [wrist, shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: close_grip_push_up
+    source: free_exercise_db
+    source_id: Push-Ups_-_Close_Triceps_Position
+    name: "Close-grip push-up"
+    pattern: horizontal_push
+    priority: 55
+    bodyweight: true
+    joint_stress: [wrist, elbow]
+    substitutes: [close_grip_bench_press, dumbbell_floor_press, barbell_bench_press]
+  - id: wide_push_up
+    source: free_exercise_db
+    source_id: Push-Up_Wide
+    name: "Wide push-up"
+    pattern: horizontal_push
+    priority: 55
+    bodyweight: true
+    joint_stress: [wrist, shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: dumbbell_fly
+    source: free_exercise_db
+    source_id: Dumbbell_Flyes
+    name: "Dumbbell fly"
+    pattern: horizontal_push
+    priority: 60
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: incline_dumbbell_fly
+    source: free_exercise_db
+    source_id: Incline_Dumbbell_Flyes
+    name: "Incline dumbbell fly"
+    pattern: horizontal_push
+    priority: 55
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: cable_fly
+    source: free_exercise_db
+    source_id: Flat_Bench_Cable_Flyes
+    name: "Cable fly"
+    pattern: horizontal_push
+    priority: 55
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: pec_deck
+    source: free_exercise_db
+    source_id: Butterfly
+    name: "Pec deck"
+    pattern: horizontal_push
+    priority: 60
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+  - id: chest_dip
+    source: free_exercise_db
+    source_id: Dips_-_Chest_Version
+    name: "Chest dip"
+    pattern: horizontal_push
+    priority: 55
+    bodyweight: true
+    joint_stress: [shoulder]
+    substitutes: [barbell_bench_press, dumbbell_bench_press, incline_dumbbell_press]
+    equipment: other
+  - id: seated_dumbbell_press
+    source: free_exercise_db
+    source_id: Seated_Dumbbell_Press
+    name: "Seated dumbbell press"
+    pattern: vertical_push
+    priority: 80
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, machine_shoulder_press]
+  - id: arnold_press
+    source: free_exercise_db
+    source_id: Arnold_Dumbbell_Press
+    name: "Arnold press"
+    pattern: vertical_push
+    priority: 65
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: seated_barbell_press
+    source: free_exercise_db
+    source_id: Seated_Barbell_Military_Press
+    name: "Seated barbell press"
+    pattern: vertical_push
+    priority: 65
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: machine_shoulder_press
+    source: free_exercise_db
+    source_id: Machine_Shoulder_Military_Press
+    name: "Machine shoulder press"
+    pattern: vertical_push
+    priority: 75
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: single_arm_neutral_press
+    source: free_exercise_db
+    source_id: Standing_Palm-In_One-Arm_Dumbbell_Press
+    name: "Single-arm neutral-grip press"
+    pattern: vertical_push
+    priority: 65
+    unilateral: true
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: kettlebell_press
+    source: free_exercise_db
+    source_id: Two-Arm_Kettlebell_Military_Press
+    name: "Kettlebell overhead press"
+    pattern: vertical_push
+    priority: 60
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: cable_shoulder_press
+    source: free_exercise_db
+    source_id: Seated_Cable_Shoulder_Press
+    name: "Cable shoulder press"
+    pattern: vertical_push
+    priority: 55
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: handstand_push_up
+    source: free_exercise_db
+    source_id: Handstand_Push-Ups
+    name: "Handstand push-up"
+    pattern: vertical_push
+    priority: 40
+    bodyweight: true
+    joint_stress: [shoulder, wrist]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: band_shoulder_press
+    source: free_exercise_db
+    source_id: Shoulder_Press_-_With_Bands
+    name: "Banded shoulder press"
+    pattern: vertical_push
+    priority: 45
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shoulder_press, overhead_press, seated_dumbbell_press]
+  - id: chest_supported_dumbbell_row
+    source: free_exercise_db
+    source_id: Dumbbell_Incline_Row
+    name: "Chest-supported dumbbell row"
+    pattern: horizontal_pull
+    priority: 85
+    substitutes: [one_arm_dumbbell_row, barbell_row, seated_cable_row]
+  - id: bent_over_dumbbell_row
+    source: free_exercise_db
+    source_id: Bent_Over_Two-Dumbbell_Row
+    name: "Bent-over dumbbell row"
+    pattern: horizontal_pull
+    priority: 75
+    joint_stress: [lower_back]
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: t_bar_row
+    source: free_exercise_db
+    source_id: T-Bar_Row_with_Handle
+    name: "T-bar row"
+    pattern: horizontal_pull
+    priority: 70
+    joint_stress: [lower_back]
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: machine_row
+    source: free_exercise_db
+    source_id: Leverage_Iso_Row
+    name: "Machine row"
+    pattern: horizontal_pull
+    priority: 75
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: single_arm_cable_row
+    source: free_exercise_db
+    source_id: Seated_One-arm_Cable_Pulley_Rows
+    name: "Single-arm cable row"
+    pattern: horizontal_pull
+    priority: 65
+    unilateral: true
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: kettlebell_row
+    source: free_exercise_db
+    source_id: One-Arm_Kettlebell_Row
+    name: "Kettlebell row"
+    pattern: horizontal_pull
+    priority: 60
+    unilateral: true
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: suspension_row
+    source: free_exercise_db
+    source_id: Suspended_Row
+    name: "Suspension trainer row"
+    pattern: horizontal_pull
+    priority: 65
+    bodyweight: true
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: smith_machine_row
+    source: free_exercise_db
+    source_id: Smith_Machine_Bent_Over_Row
+    name: "Smith machine row"
+    pattern: horizontal_pull
+    priority: 50
+    joint_stress: [lower_back]
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: underhand_barbell_row
+    source: free_exercise_db
+    source_id: Reverse_Grip_Bent-Over_Rows
+    name: "Underhand barbell row"
+    pattern: horizontal_pull
+    priority: 55
+    joint_stress: [lower_back, elbow]
+    substitutes: [one_arm_dumbbell_row, chest_supported_dumbbell_row, barbell_row]
+  - id: face_pull
+    source: free_exercise_db
+    source_id: Face_Pull
+    name: "Face pull"
+    pattern: horizontal_pull
+    priority: 75
+    substitutes: [band_pull_apart, reverse_dumbbell_fly, reverse_pec_deck]
+  - id: band_pull_apart
+    source: free_exercise_db
+    source_id: Band_Pull_Apart
+    name: "Band pull-apart"
+    pattern: horizontal_pull
+    priority: 60
+    substitutes: [face_pull, reverse_dumbbell_fly, reverse_pec_deck]
+  - id: reverse_dumbbell_fly
+    source: free_exercise_db
+    source_id: Reverse_Flyes
+    name: "Reverse dumbbell fly"
+    pattern: horizontal_pull
+    priority: 60
+    substitutes: [face_pull, band_pull_apart, reverse_pec_deck]
+  - id: reverse_pec_deck
+    source: free_exercise_db
+    source_id: Reverse_Machine_Flyes
+    name: "Reverse pec deck"
+    pattern: horizontal_pull
+    priority: 60
+    substitutes: [face_pull, band_pull_apart, reverse_dumbbell_fly]
+  - id: close_grip_pulldown
+    source: free_exercise_db
+    source_id: Close-Grip_Front_Lat_Pulldown
+    name: "Close-grip lat pulldown"
+    pattern: vertical_pull
+    priority: 75
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: underhand_pulldown
+    source: free_exercise_db
+    source_id: Underhand_Cable_Pulldowns
+    name: "Underhand lat pulldown"
+    pattern: vertical_pull
+    priority: 70
+    joint_stress: [elbow]
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: neutral_grip_pulldown
+    source: free_exercise_db
+    source_id: V-Bar_Pulldown
+    name: "Neutral-grip pulldown"
+    pattern: vertical_pull
+    priority: 70
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: single_arm_pulldown
+    source: free_exercise_db
+    source_id: One_Arm_Lat_Pulldown
+    name: "Single-arm pulldown"
+    pattern: vertical_pull
+    priority: 55
+    unilateral: true
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: band_assisted_pull_up
+    source: free_exercise_db
+    source_id: Band_Assisted_Pull-Up
+    name: "Band-assisted pull-up"
+    pattern: vertical_pull
+    priority: 75
+    bodyweight: true
+    joint_stress: [shoulder]
+    substitutes: [lat_pulldown, pull_up, chin_up]
+    equipment: pull-up bar
+  - id: weighted_pull_up
+    source: free_exercise_db
+    source_id: Weighted_Pull_Ups
+    name: "Weighted pull-up"
+    pattern: vertical_pull
+    priority: 50
+    joint_stress: [shoulder, elbow]
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: straight_arm_pulldown
+    source: free_exercise_db
+    source_id: Straight-Arm_Pulldown
+    name: "Straight-arm pulldown"
+    pattern: vertical_pull
+    priority: 60
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: dumbbell_pullover
+    source: free_exercise_db
+    source_id: Straight-Arm_Dumbbell_Pullover
+    name: "Dumbbell pullover"
+    pattern: vertical_pull
+    priority: 50
+    joint_stress: [shoulder]
+    substitutes: [lat_pulldown, pull_up, chin_up]
+  - id: scapular_pull_up
+    source: free_exercise_db
+    source_id: Scapular_Pull-Up
+    name: "Scapular pull-up"
+    pattern: vertical_pull
+    priority: 45
+    bodyweight: true
+    substitutes: [lat_pulldown, pull_up, chin_up]
+    equipment: pull-up bar
+  - id: dead_bug
+    source: free_exercise_db
+    source_id: Dead_Bug
+    name: "Dead bug"
+    pattern: core_anti_extension
+    priority: 80
+    bodyweight: true
+    substitutes: [plank, side_plank, hanging_leg_raise]
+  - id: side_plank
+    source: free_exercise_db
+    source_id: Side_Bridge
+    name: "Side plank"
+    pattern: core_anti_extension
+    priority: 75
+    bodyweight: true
+    substitutes: [dead_bug, plank, hanging_leg_raise]
+    timed: true
+  - id: ab_wheel_rollout
+    source: free_exercise_db
+    source_id: Ab_Roller
+    name: "Ab wheel rollout"
+    pattern: core_anti_extension
+    priority: 60
+    joint_stress: [lower_back, shoulder]
+    substitutes: [dead_bug, plank, side_plank]
+  - id: reverse_crunch
+    source: free_exercise_db
+    source_id: Reverse_Crunch
+    name: "Reverse crunch"
+    pattern: core_anti_extension
+    priority: 65
+    bodyweight: true
+    substitutes: [dead_bug, plank, side_plank]
+  - id: crunch
+    source: free_exercise_db
+    source_id: Crunches
+    name: "Crunch"
+    pattern: core_anti_extension
+    priority: 55
+    bodyweight: true
+    substitutes: [dead_bug, plank, side_plank]
+  - id: cable_crunch
+    source: free_exercise_db
+    source_id: Cable_Crunch
+    name: "Cable crunch"
+    pattern: core_anti_extension
+    priority: 60
+    substitutes: [dead_bug, plank, side_plank]
+  - id: lying_leg_raise
+    source: free_exercise_db
+    source_id: Flat_Bench_Lying_Leg_Raise
+    name: "Lying leg raise"
+    pattern: core_anti_extension
+    priority: 60
+    bodyweight: true
+    joint_stress: [lower_back]
+    substitutes: [dead_bug, plank, side_plank]
+  - id: captains_chair_knee_raise
+    source: free_exercise_db
+    source_id: Knee_Hip_Raise_On_Parallel_Bars
+    name: "Captain's chair knee raise"
+    pattern: core_anti_extension
+    priority: 60
+    bodyweight: true
+    substitutes: [dead_bug, plank, side_plank]
+  - id: mountain_climber
+    source: free_exercise_db
+    source_id: Mountain_Climbers
+    name: "Mountain climber"
+    pattern: core_anti_extension
+    priority: 60
+    bodyweight: true
+    joint_stress: [wrist]
+    substitutes: [dead_bug, plank, side_plank]
+    timed: true
+  - id: stability_ball_knee_tuck
+    source: free_exercise_db
+    source_id: Exercise_Ball_Pull-In
+    name: "Stability ball knee tuck"
+    pattern: core_anti_extension
+    priority: 50
+    joint_stress: [wrist]
+    substitutes: [dead_bug, plank, side_plank]
+  - id: superman
+    source: free_exercise_db
+    source_id: Superman
+    name: "Superman"
+    pattern: core_anti_extension
+    priority: 45
+    bodyweight: true
+    substitutes: [dead_bug, plank, side_plank]
+  - id: pallof_press
+    source: free_exercise_db
+    source_id: Pallof_Press
+    name: "Pallof press"
+    pattern: core_rotation
+    priority: 80
+    substitutes: [cable_wood_chop, pallof_press_rotation, russian_twist]
+  - id: pallof_press_rotation
+    source: free_exercise_db
+    source_id: Pallof_Press_With_Rotation
+    name: "Pallof press with rotation"
+    pattern: core_rotation
+    priority: 60
+    substitutes: [pallof_press, cable_wood_chop, russian_twist]
+  - id: cable_wood_chop
+    source: free_exercise_db
+    source_id: Standing_Cable_Wood_Chop
+    name: "Cable wood chop"
+    pattern: core_rotation
+    priority: 70
+    substitutes: [pallof_press, pallof_press_rotation, russian_twist]
+  - id: oblique_crunch
+    source: free_exercise_db
+    source_id: Oblique_Crunches_-_On_The_Floor
+    name: "Oblique crunch"
+    pattern: core_rotation
+    priority: 45
+    bodyweight: true
+    substitutes: [pallof_press, cable_wood_chop, pallof_press_rotation]
+  - id: cable_side_bend
+    source: free_exercise_db
+    source_id: One-Arm_High-Pulley_Cable_Side_Bends
+    name: "Cable side bend"
+    pattern: core_rotation
+    priority: 40
+    unilateral: true
+    substitutes: [pallof_press, cable_wood_chop, pallof_press_rotation]
+  - id: seated_calf_raise
+    source: free_exercise_db
+    source_id: Seated_Calf_Raise
+    name: "Seated calf raise"
+    pattern: calf
+    priority: 65
+    substitutes: [standing_calf_raise, dumbbell_calf_raise, leg_press_calf_raise]
+  - id: dumbbell_calf_raise
+    source: free_exercise_db
+    source_id: Standing_Dumbbell_Calf_Raise
+    name: "Dumbbell calf raise"
+    pattern: calf
+    priority: 65
+    substitutes: [standing_calf_raise, seated_calf_raise, leg_press_calf_raise]
+  - id: leg_press_calf_raise
+    source: free_exercise_db
+    source_id: Calf_Press_On_The_Leg_Press_Machine
+    name: "Leg press calf raise"
+    pattern: calf
+    priority: 60
+    substitutes: [standing_calf_raise, dumbbell_calf_raise, seated_calf_raise]
+  - id: single_leg_calf_raise
+    source: free_exercise_db
+    source_id: Dumbbell_Seated_One-Leg_Calf_Raise
+    name: "Single-leg seated calf raise"
+    pattern: calf
+    priority: 45
+    unilateral: true
+    substitutes: [standing_calf_raise, dumbbell_calf_raise, seated_calf_raise]
+  - id: hammer_curl
+    source: free_exercise_db
+    source_id: Hammer_Curls
+    name: "Hammer curl"
+    pattern: isolation_arm
+    priority: 75
+    substitutes: [dumbbell_curl, barbell_curl, ez_bar_curl]
+  - id: ez_bar_curl
+    source: free_exercise_db
+    source_id: EZ-Bar_Curl
+    name: "EZ-bar curl"
+    pattern: isolation_arm
+    priority: 70
+    substitutes: [dumbbell_curl, hammer_curl, barbell_curl]
+  - id: incline_dumbbell_curl
+    source: free_exercise_db
+    source_id: Incline_Dumbbell_Curl
+    name: "Incline dumbbell curl"
+    pattern: isolation_arm
+    priority: 60
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_curl, hammer_curl, barbell_curl]
+  - id: preacher_curl
+    source: free_exercise_db
+    source_id: Preacher_Curl
+    name: "Preacher curl"
+    pattern: isolation_arm
+    priority: 60
+    joint_stress: [elbow]
+    substitutes: [dumbbell_curl, hammer_curl, barbell_curl]
+  - id: cable_curl
+    source: free_exercise_db
+    source_id: Standing_Biceps_Cable_Curl
+    name: "Cable curl"
+    pattern: isolation_arm
+    priority: 65
+    substitutes: [dumbbell_curl, hammer_curl, barbell_curl]
+  - id: concentration_curl
+    source: free_exercise_db
+    source_id: Concentration_Curls
+    name: "Concentration curl"
+    pattern: isolation_arm
+    priority: 55
+    unilateral: true
+    substitutes: [dumbbell_curl, hammer_curl, barbell_curl]
+  - id: rope_pushdown
+    source: free_exercise_db
+    source_id: Triceps_Pushdown_-_Rope_Attachment
+    name: "Rope pushdown"
+    pattern: isolation_arm
+    priority: 75
+    joint_stress: [elbow]
+    substitutes: [triceps_pushdown, overhead_rope_extension, dumbbell_overhead_extension]
+  - id: overhead_rope_extension
+    source: free_exercise_db
+    source_id: Triceps_Overhead_Extension_with_Rope
+    name: "Overhead rope extension"
+    pattern: isolation_arm
+    priority: 65
+    joint_stress: [elbow, shoulder]
+    substitutes: [rope_pushdown, triceps_pushdown, dumbbell_overhead_extension]
+  - id: skull_crusher
+    source: free_exercise_db
+    source_id: Lying_Triceps_Press
+    name: "Skull crusher"
+    pattern: isolation_arm
+    priority: 60
+    joint_stress: [elbow]
+    substitutes: [rope_pushdown, triceps_pushdown, overhead_rope_extension]
+  - id: dumbbell_overhead_extension
+    source: free_exercise_db
+    source_id: Standing_Dumbbell_Triceps_Extension
+    name: "Dumbbell overhead extension"
+    pattern: isolation_arm
+    priority: 60
+    joint_stress: [elbow, shoulder]
+    substitutes: [rope_pushdown, triceps_pushdown, overhead_rope_extension]
+  - id: triceps_kickback
+    source: free_exercise_db
+    source_id: Tricep_Dumbbell_Kickback
+    name: "Triceps kickback"
+    pattern: isolation_arm
+    priority: 50
+    substitutes: [rope_pushdown, triceps_pushdown, overhead_rope_extension]
+  - id: triceps_dip
+    source: free_exercise_db
+    source_id: Dips_-_Triceps_Version
+    name: "Triceps dip"
+    pattern: isolation_arm
+    priority: 60
+    bodyweight: true
+    joint_stress: [shoulder, elbow]
+    substitutes: [rope_pushdown, triceps_pushdown, overhead_rope_extension]
+    equipment: other
+  - id: cable_lateral_raise
+    source: free_exercise_db
+    source_id: Cable_Seated_Lateral_Raise
+    name: "Cable lateral raise"
+    pattern: isolation_arm
+    priority: 60
+    joint_stress: [shoulder]
+    substitutes: [lateral_raise, front_raise, dumbbell_curl]
+  - id: front_raise
+    source: free_exercise_db
+    source_id: Front_Dumbbell_Raise
+    name: "Front raise"
+    pattern: isolation_arm
+    priority: 45
+    joint_stress: [shoulder]
+    substitutes: [lateral_raise, cable_lateral_raise, dumbbell_curl]
+  - id: dumbbell_shrug
+    source: free_exercise_db
+    source_id: Dumbbell_Shrug
+    name: "Dumbbell shrug"
+    pattern: isolation_arm
+    priority: 55
+    substitutes: [barbell_shrug, dumbbell_upright_row, dumbbell_curl]
+  - id: barbell_shrug
+    source: free_exercise_db
+    source_id: Barbell_Shrug
+    name: "Barbell shrug"
+    pattern: isolation_arm
+    priority: 50
+    substitutes: [dumbbell_shrug, dumbbell_upright_row, dumbbell_curl]
+  - id: dumbbell_upright_row
+    source: free_exercise_db
+    source_id: Standing_Dumbbell_Upright_Row
+    name: "Dumbbell upright row"
+    pattern: isolation_arm
+    priority: 40
+    joint_stress: [shoulder]
+    substitutes: [dumbbell_shrug, barbell_shrug, dumbbell_curl]
+  - id: wrist_curl
+    source: free_exercise_db
+    source_id: Seated_Dumbbell_Palms-Up_Wrist_Curl
+    name: "Wrist curl"
+    pattern: isolation_arm
+    priority: 35
+    joint_stress: [wrist]
+    substitutes: [dumbbell_curl, hammer_curl, rope_pushdown]
+  - id: zottman_curl
+    source: free_exercise_db
+    source_id: Zottman_Curl
+    name: "Zottman curl"
+    pattern: isolation_arm
+    priority: 45
+    substitutes: [dumbbell_curl, hammer_curl, barbell_curl]
+  - id: seated_leg_curl
+    source: free_exercise_db
+    source_id: Seated_Leg_Curl
+    name: "Seated leg curl"
+    pattern: isolation_leg
+    priority: 70
+    substitutes: [lying_leg_curl, stability_ball_leg_curl, standing_leg_curl]
+  - id: standing_leg_curl
+    source: free_exercise_db
+    source_id: Standing_Leg_Curl
+    name: "Standing leg curl"
+    pattern: isolation_leg
+    priority: 50
+    unilateral: true
+    substitutes: [seated_leg_curl, lying_leg_curl, stability_ball_leg_curl]
+  - id: stability_ball_leg_curl
+    source: free_exercise_db
+    source_id: Ball_Leg_Curl
+    name: "Stability ball leg curl"
+    pattern: isolation_leg
+    priority: 50
+    substitutes: [seated_leg_curl, lying_leg_curl, standing_leg_curl]
+  - id: cable_hip_adduction
+    source: free_exercise_db
+    source_id: Cable_Hip_Adduction
+    name: "Cable hip adduction"
+    pattern: isolation_leg
+    priority: 40
+    unilateral: true
+    substitutes: [leg_extension, seated_leg_curl, lying_leg_curl]
+  - id: monster_walk
+    source: free_exercise_db
+    source_id: Monster_Walk
+    name: "Banded monster walk"
+    pattern: isolation_leg
+    priority: 50
+    substitutes: [seated_leg_curl, lying_leg_curl, cable_glute_kickback]
+  - id: glute_kickback
+    source: free_exercise_db
+    source_id: Glute_Kickback
+    name: "Glute kickback"
+    pattern: isolation_leg
+    priority: 50
+    bodyweight: true
+    unilateral: true
+    substitutes: [cable_glute_kickback, seated_leg_curl, lying_leg_curl]
+  - id: cable_glute_kickback
+    source: free_exercise_db
+    source_id: One-Legged_Cable_Kickback
+    name: "Cable glute kickback"
+    pattern: isolation_leg
+    priority: 55
+    unilateral: true
+    substitutes: [glute_kickback, seated_leg_curl, lying_leg_curl]
+  - id: jump_rope
+    source: free_exercise_db
+    source_id: Rope_Jumping
+    name: "Jump rope"
+    pattern: conditioning
+    priority: 70
+    joint_stress: [knee]
+    substitutes: [rowing_machine, stationary_bike, treadmill_walk]
+    timed: true
+  - id: rowing_machine
+    source: free_exercise_db
+    source_id: Rowing_Stationary
+    name: "Rowing machine"
+    pattern: conditioning
+    priority: 80
+    substitutes: [stationary_bike, jump_rope, treadmill_walk]
+    timed: true
+  - id: stationary_bike
+    source: free_exercise_db
+    source_id: Recumbent_Bike
+    name: "Stationary bike"
+    pattern: conditioning
+    priority: 75
+    substitutes: [rowing_machine, jump_rope, treadmill_walk]
+    timed: true
+  - id: treadmill_walk
+    source: free_exercise_db
+    source_id: Walking_Treadmill
+    name: "Treadmill walk"
+    pattern: conditioning
+    priority: 70
+    substitutes: [rowing_machine, stationary_bike, jump_rope]
+    timed: true
+  - id: battle_ropes
+    source: free_exercise_db
+    source_id: Battling_Ropes
+    name: "Battle ropes"
+    pattern: conditioning
+    priority: 55
+    joint_stress: [shoulder]
+    substitutes: [rowing_machine, stationary_bike, jump_rope]
+    timed: true
+  - id: box_jump
+    source: free_exercise_db
+    source_id: Front_Box_Jump
+    name: "Box jump"
+    pattern: conditioning
+    priority: 55
+    bodyweight: true
+    joint_stress: [knee]
+    substitutes: [sled_push, rowing_machine, stationary_bike]
+  - id: jump_squat
+    source: free_exercise_db
+    source_id: Freehand_Jump_Squat
+    name: "Jump squat"
+    pattern: conditioning
+    priority: 55
+    bodyweight: true
+    joint_stress: [knee]
+    substitutes: [rowing_machine, stationary_bike, jump_rope]
+  - id: star_jump
+    source: free_exercise_db
+    source_id: Star_Jump
+    name: "Star jump"
+    pattern: conditioning
+    priority: 50
+    bodyweight: true
+    joint_stress: [knee]
+    substitutes: [rowing_machine, stationary_bike, jump_rope]
+  - id: sled_push
+    source: free_exercise_db
+    source_id: Prowler_Sprint
+    name: "Sled push"
+    pattern: conditioning
+    priority: 55
+    substitutes: [box_jump, rowing_machine, stationary_bike]
+    timed: true
+  - id: stair_climber
+    source: free_exercise_db
+    source_id: Step_Mill
+    name: "Stair climber"
+    pattern: conditioning
+    priority: 65
+    joint_stress: [knee]
+    substitutes: [rowing_machine, stationary_bike, jump_rope]
+    timed: true
+  - id: worlds_greatest_stretch
+    source: free_exercise_db
+    source_id: Worlds_Greatest_Stretch
+    name: "World's greatest stretch"
+    pattern: mobility
+    priority: 80
+    bodyweight: true
+    substitutes: [hamstring_stretch, kneeling_hip_flexor_stretch, cat_stretch]
+    timed: true
+  - id: cat_stretch
+    source: free_exercise_db
+    source_id: Cat_Stretch
+    name: "Cat stretch"
+    pattern: mobility
+    priority: 65
+    bodyweight: true
+    substitutes: [childs_pose, worlds_greatest_stretch, kneeling_hip_flexor_stretch]
+    timed: true
+  - id: childs_pose
+    source: free_exercise_db
+    source_id: Childs_Pose
+    name: "Child's pose"
+    pattern: mobility
+    priority: 65
+    bodyweight: true
+    substitutes: [cat_stretch, worlds_greatest_stretch, kneeling_hip_flexor_stretch]
+    timed: true
+  - id: kneeling_hip_flexor_stretch
+    source: free_exercise_db
+    source_id: Kneeling_Hip_Flexor
+    name: "Kneeling hip flexor stretch"
+    pattern: mobility
+    priority: 70
+    bodyweight: true
+    unilateral: true
+    substitutes: [quad_stretch, worlds_greatest_stretch, cat_stretch]
+    timed: true
+  - id: hamstring_stretch
+    source: free_exercise_db
+    source_id: Hamstring_Stretch
+    name: "Hamstring stretch"
+    pattern: mobility
+    priority: 60
+    bodyweight: true
+    substitutes: [worlds_greatest_stretch, kneeling_hip_flexor_stretch, cat_stretch]
+    timed: true
+  - id: standing_hip_circles
+    source: free_exercise_db
+    source_id: Standing_Hip_Circles
+    name: "Hip circles"
+    pattern: mobility
+    priority: 55
+    bodyweight: true
+    substitutes: [worlds_greatest_stretch, kneeling_hip_flexor_stretch, cat_stretch]
+  - id: arm_circles
+    source: free_exercise_db
+    source_id: Arm_Circles
+    name: "Arm circles"
+    pattern: mobility
+    priority: 55
+    bodyweight: true
+    substitutes: [worlds_greatest_stretch, kneeling_hip_flexor_stretch, cat_stretch]
+  - id: wall_calf_stretch
+    source: free_exercise_db
+    source_id: Calf_Stretch_Hands_Against_Wall
+    name: "Wall calf stretch"
+    pattern: mobility
+    priority: 50
+    bodyweight: true
+    substitutes: [worlds_greatest_stretch, kneeling_hip_flexor_stretch, cat_stretch]
+    timed: true
+  - id: quad_stretch
+    source: free_exercise_db
+    source_id: On_Your_Side_Quad_Stretch
+    name: "Side-lying quad stretch"
+    pattern: mobility
+    priority: 45
+    bodyweight: true
+    substitutes: [kneeling_hip_flexor_stretch, worlds_greatest_stretch, cat_stretch]
+    timed: true
+  - id: upper_back_stretch
+    source: free_exercise_db
+    source_id: Upper_Back_Stretch
+    name: "Upper back stretch"
+    pattern: mobility
+    priority: 45
+    bodyweight: true
+    substitutes: [worlds_greatest_stretch, kneeling_hip_flexor_stretch, cat_stretch]
+    timed: true

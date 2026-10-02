@@ -1,0 +1,125 @@
+import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:ripped/app/app.dart';
+import 'package:ripped/app/providers.dart';
+import 'package:ripped/app/router.dart';
+import 'package:ripped/core/catalog/catalog_repository.dart';
+import 'package:ripped/core/db/app_database.dart';
+import 'package:ripped/core/design/components/components.dart';
+
+import 'helpers/catalog.dart';
+
+/// The core loop end to end, offline, against a real (in-memory) database:
+/// onboarding -> plan -> today -> workout -> finish -> summary -> today.
+void main() {
+  late AppDatabase db;
+
+  setUp(() {
+    db = AppDatabase(DatabaseConnection(NativeDatabase.memory()));
+  });
+
+  tearDown(() => db.close());
+
+  Future<void> pumpApp(WidgetTester tester, {bool onboarded = false}) async {
+    tester.view
+      ..physicalSize = const Size(1080, 2400)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          catalogProvider.overrideWithValue(CatalogRepository(realCatalog())),
+          initialOnboardedProvider.overrideWithValue(onboarded),
+        ],
+        child: const RippedApp(),
+      ),
+    );
+    await settle(tester);
+  }
+
+  testWidgets('first run: onboarding, plan, workout, summary', (tester) async {
+    await tester.runAsync(() async {
+      await pumpApp(tester);
+
+      // Onboarding: pick a goal, skip the rest, accept the disclaimer.
+      expect(find.text("What's your main goal?"), findsOneWidget);
+      await tester.tap(find.text('Get stronger'));
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+      expect(find.text('Before you start'), findsOneWidget);
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+
+      // Plan preview.
+      expect(find.text('Your plan is ready'), findsOneWidget);
+      await tester.tap(find.text('Looks good'));
+      await settle(tester);
+
+      // Today: workout or rest day depending on the weekday.
+      final start = find.text('Start workout');
+      if (start.evaluate().isEmpty) {
+        await tester.tap(find.text('Train anyway'));
+      } else {
+        await tester.tap(start);
+      }
+      await settle(tester, frames: 30);
+
+      // Active workout: log the first set with one tap.
+      expect(find.byType(SetRow), findsWidgets);
+      await tester.tap(find.bySemanticsLabel('Mark set 1 done').first);
+      await settle(tester);
+      expect(find.text('Rest'), findsOneWidget);
+
+      // Finish.
+      await tester.tap(find.text('Finish'));
+      await settle(tester);
+      await tester.tap(find.text('Just right'));
+      await tester.tap(find.text('Finish workout'));
+      await settle(tester, frames: 40);
+
+      expect(find.text('Workout complete'), findsOneWidget);
+      expect(find.text('NEXT TIME'), findsOneWidget);
+      await tester.tap(find.text('Done'));
+      await settle(tester);
+
+      expect(find.text('Done for today'), findsOneWidget);
+      await unmount(tester);
+    });
+  });
+
+  testWidgets('history lists the finished workout', (tester) async {
+    await tester.runAsync(() async {
+      await pumpApp(tester);
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+      await tester.tap(find.text('Looks good'));
+      await settle(tester);
+
+      await tester.tap(find.text('Progress'));
+      await settle(tester);
+      expect(find.text('No workouts yet'), findsOneWidget);
+      await unmount(tester);
+    });
+  });
+}
+
+/// Drift closes stream queries on a zero-length timer; let it fire before
+/// the test ends.
+Future<void> unmount(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox());
+  await settle(tester, frames: 3);
+}
+
+/// Pumps frames while letting real async work (sqlite) complete.
+Future<void> settle(WidgetTester tester, {int frames = 15}) async {
+  for (var i = 0; i < frames; i++) {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
