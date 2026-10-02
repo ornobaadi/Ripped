@@ -181,4 +181,40 @@ void main() {
     ),
     size: const Size(400, 120),
   );
+
+  goldenTest(
+    'gamification',
+    () => const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(child: LevelBadge(level: 4, title: 'Beginner')),
+            StreakFlame(weeks: 3, label: '3-week streak'),
+          ],
+        ),
+        SizedBox(height: AppSpacing.md),
+        XpBar(value: 0.6, label: '480 / 800 XP'),
+        SizedBox(height: AppSpacing.md),
+        StreakFlame(weeks: 0, label: 'No streak yet'),
+        SizedBox(height: AppSpacing.md),
+        PrCard(
+          exerciseName: 'Bench press',
+          headline: 'Estimated max 82.5 kg',
+          detail: 'was 80 kg',
+          badge: 'New best',
+        ),
+      ],
+    ),
+    size: const Size(400, 420),
+  );
+
+  goldenTest(
+    'trend_chart',
+    () => const TrendChart(
+      values: [60, 62.5, 62.5, 65, 67.5],
+      semanticLabel: 'Estimated max 60 to 67.5 kg',
+    ),
+    size: const Size(400, 220),
+  );
 }

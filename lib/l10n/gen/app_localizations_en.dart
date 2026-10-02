@@ -570,4 +570,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String streakWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count-week streak',
+      one: '1-week streak',
+      zero: 'No streak yet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakWeeksShort(int count) {
+    return '${count}w';
+  }
+
+  @override
+  String levelLabel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String xpProgress(int current, int next) {
+    return '$current / $next XP';
+  }
+
+  @override
+  String xpEarned(int amount) {
+    return '+$amount XP';
+  }
+
+  @override
+  String get titleBeginner => 'Beginner';
+
+  @override
+  String get titleRegular => 'Regular';
+
+  @override
+  String get titleDedicated => 'Dedicated';
+
+  @override
+  String get titleAthlete => 'Athlete';
+
+  @override
+  String get titleLegend => 'Legend';
+
+  @override
+  String levelUp(int level) {
+    return 'Level up! You\'re now level $level.';
+  }
+
+  @override
+  String get newBest => 'New best';
+
+  @override
+  String prE1rm(String value) {
+    return 'Estimated max $value';
+  }
+
+  @override
+  String prReps(int reps, String weight) {
+    return '$reps reps at $weight';
+  }
+
+  @override
+  String prVolume(String value) {
+    return 'Session volume $value';
+  }
+
+  @override
+  String prPrevious(String value) {
+    return 'was $value';
+  }
+
+  @override
+  String weekTargetHit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weeks',
+      one: '1 week',
+    );
+    return 'Weekly target hit. Streak: $_temp0.';
+  }
+
+  @override
+  String get volumeSpikeNote =>
+      'Big jump in training volume this week. Sleep, eat well, and take your rest days.';
+
+  @override
+  String get welcomeBackTitle => 'Welcome back';
+
+  @override
+  String get welcomeBackMessage =>
+      'Good to see you. Let\'s ease back in with today\'s session.';
+
+  @override
+  String get comebackBonus => 'Welcome back bonus';
+
+  @override
+  String get shieldAvailable => 'Streak shield ready this month';
+
+  @override
+  String get shieldUsed => 'Shield used this month';
+
+  @override
+  String get streakTitle => 'Weekly streak';
+
+  @override
+  String get recordsTitle => 'Personal records';
+
+  @override
+  String get recordsEmpty =>
+      'Beat a previous session and your records show up here.';
+
+  @override
+  String get chartTitle => 'Strength over time';
+
+  @override
+  String get chartEmpty => 'Log a lift twice to see your trend.';
+
+  @override
+  String get chartEstimatedMax => 'Estimated max';
+
+  @override
+  String get sectionReminders => 'Reminders';
+
+  @override
+  String get remindersToggle => 'Workout reminders';
+
+  @override
+  String get remindersSub => 'On your training days';
+
+  @override
+  String get reminderTime => 'Time';
+
+  @override
+  String get reminderTitle => 'Training day';
+
+  @override
+  String get reminderBody => 'Your workout is ready when you are.';
+
+  @override
+  String get notificationsDenied =>
+      'Notifications are off for Ripped. You can turn them on in system settings.';
+
+  @override
+  String weekOf(String date) {
+    return 'Week of $date';
+  }
+
+  @override
+  String weekDoneOfTarget(int done, int target) {
+    return '$done/$target';
+  }
 }

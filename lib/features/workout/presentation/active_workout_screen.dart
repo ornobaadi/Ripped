@@ -165,12 +165,13 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       if (mounted) context.go('/');
       return;
     }
-    final results = await repo.finishWorkout(
+    final result = await repo.finishWorkout(
       w.id,
       units: ref.read(unitsProvider),
       feeling: outcome.feeling,
+      weeklyTarget: ref.read(profileProvider).daysPerWeek,
     );
-    if (mounted) context.go('/workout/${w.id}/complete', extra: results);
+    if (mounted) context.go('/workout/${w.id}/complete', extra: result);
   }
 
   Future<void> _menu(WorkoutView w, WorkoutExerciseView e, int index) async {

@@ -83,10 +83,31 @@ void main() {
 
       expect(find.text('Workout complete'), findsOneWidget);
       expect(find.text('NEXT TIME'), findsOneWidget);
+      expect(find.textContaining('XP'), findsWidgets);
       await tester.tap(find.text('Done'));
       await settle(tester);
 
       expect(find.text('Done for today'), findsOneWidget);
+      await unmount(tester);
+    });
+  });
+
+  testWidgets('every tab reflows at 200% text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.runAsync(() async {
+      await pumpApp(tester);
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+      await tester.tap(find.text('Looks good'));
+      await settle(tester);
+      for (final tab in ['Progress', 'You', 'Today']) {
+        await tester.tap(find.text(tab).last);
+        await settle(tester);
+      }
+      // Any RenderFlex overflow above fails the test.
       await unmount(tester);
     });
   });

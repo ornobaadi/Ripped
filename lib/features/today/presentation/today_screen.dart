@@ -21,15 +21,27 @@ class TodayScreen extends ConsumerWidget {
     final status = ref.watch(todayStatusProvider).value;
     final program = ref.watch(activeProgramProvider).value;
     final activeId = ref.watch(activeWorkoutIdProvider).value;
+    final streak = ref.watch(streakProvider);
+    final comeback = ref.watch(isComebackProvider);
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            Text(
-              DateFormat.EEEE().format(DateTime.now()),
-              style: text.titleLarge,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    DateFormat.EEEE().format(DateTime.now()),
+                    style: text.titleLarge,
+                  ),
+                ),
+                StreakFlame(
+                  weeks: streak.weeks,
+                  label: l10n.streakWeeks(streak.weeks),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
             if (status != null)
@@ -41,6 +53,24 @@ class TodayScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: AppSpacing.xl),
+            if (comeback && activeId == null) ...[
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.welcomeBackTitle, style: text.headlineSmall),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      l10n.welcomeBackMessage,
+                      style: text.bodyLarge?.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
             AnimatedSwitcher(
               duration: AppMotion.base,
               child: switch ((status, program)) {

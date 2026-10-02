@@ -132,3 +132,27 @@ class Settings extends Table {
   @override
   Set<Column<Object>> get primaryKey => {key};
 }
+
+/// Append-only XP ledger (architecture.md 4.2). Level and total XP are
+/// derived from it, never stored.
+@DataClassName('XpEventRow')
+class XpEvents extends Table with SyncColumns {
+  TextColumn get source => text()();
+
+  /// Workout that earned it.
+  TextColumn get sourceId => text().nullable()();
+  IntColumn get amount => integer()();
+  DateTimeColumn get occurredAt => dateTime()();
+}
+
+@DataClassName('PersonalRecordRow')
+class PersonalRecords extends Table with SyncColumns {
+  TextColumn get exerciseId => text()();
+  TextColumn get type => text()();
+  RealColumn get value => real()();
+  RealColumn get previous => real()();
+  RealColumn get weightKg => real()();
+  IntColumn get reps => integer()();
+  TextColumn get workoutId => text().references(Workouts, #id)();
+  DateTimeColumn get achievedAt => dateTime()();
+}

@@ -1077,6 +1077,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get errorGeneric;
+
+  /// No description provided for @streakWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No streak yet} =1{1-week streak} other{{count}-week streak}}'**
+  String streakWeeks(int count);
+
+  /// No description provided for @streakWeeksShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}w'**
+  String streakWeeksShort(int count);
+
+  /// No description provided for @levelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String levelLabel(int level);
+
+  /// No description provided for @xpProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {next} XP'**
+  String xpProgress(int current, int next);
+
+  /// No description provided for @xpEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'+{amount} XP'**
+  String xpEarned(int amount);
+
+  /// No description provided for @titleBeginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get titleBeginner;
+
+  /// No description provided for @titleRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get titleRegular;
+
+  /// No description provided for @titleDedicated.
+  ///
+  /// In en, this message translates to:
+  /// **'Dedicated'**
+  String get titleDedicated;
+
+  /// No description provided for @titleAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete'**
+  String get titleAthlete;
+
+  /// No description provided for @titleLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get titleLegend;
+
+  /// No description provided for @levelUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Level up! You\'re now level {level}.'**
+  String levelUp(int level);
+
+  /// No description provided for @newBest.
+  ///
+  /// In en, this message translates to:
+  /// **'New best'**
+  String get newBest;
+
+  /// No description provided for @prE1rm.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated max {value}'**
+  String prE1rm(String value);
+
+  /// No description provided for @prReps.
+  ///
+  /// In en, this message translates to:
+  /// **'{reps} reps at {weight}'**
+  String prReps(int reps, String weight);
+
+  /// No description provided for @prVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Session volume {value}'**
+  String prVolume(String value);
+
+  /// No description provided for @prPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'was {value}'**
+  String prPrevious(String value);
+
+  /// No description provided for @weekTargetHit.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly target hit. Streak: {count, plural, =1{1 week} other{{count} weeks}}.'**
+  String weekTargetHit(int count);
+
+  /// No description provided for @volumeSpikeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Big jump in training volume this week. Sleep, eat well, and take your rest days.'**
+  String get volumeSpikeNote;
+
+  /// No description provided for @welcomeBackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeBackTitle;
+
+  /// No description provided for @welcomeBackMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Good to see you. Let\'s ease back in with today\'s session.'**
+  String get welcomeBackMessage;
+
+  /// No description provided for @comebackBonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back bonus'**
+  String get comebackBonus;
+
+  /// No description provided for @shieldAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak shield ready this month'**
+  String get shieldAvailable;
+
+  /// No description provided for @shieldUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Shield used this month'**
+  String get shieldUsed;
+
+  /// No description provided for @streakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly streak'**
+  String get streakTitle;
+
+  /// No description provided for @recordsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal records'**
+  String get recordsTitle;
+
+  /// No description provided for @recordsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Beat a previous session and your records show up here.'**
+  String get recordsEmpty;
+
+  /// No description provided for @chartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength over time'**
+  String get chartTitle;
+
+  /// No description provided for @chartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a lift twice to see your trend.'**
+  String get chartEmpty;
+
+  /// No description provided for @chartEstimatedMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated max'**
+  String get chartEstimatedMax;
+
+  /// No description provided for @sectionReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get sectionReminders;
+
+  /// No description provided for @remindersToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout reminders'**
+  String get remindersToggle;
+
+  /// No description provided for @remindersSub.
+  ///
+  /// In en, this message translates to:
+  /// **'On your training days'**
+  String get remindersSub;
+
+  /// No description provided for @reminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get reminderTime;
+
+  /// No description provided for @reminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Training day'**
+  String get reminderTitle;
+
+  /// No description provided for @reminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your workout is ready when you are.'**
+  String get reminderBody;
+
+  /// No description provided for @notificationsDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are off for Ripped. You can turn them on in system settings.'**
+  String get notificationsDenied;
+
+  /// No description provided for @weekOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Week of {date}'**
+  String weekOf(String date);
+
+  /// No description provided for @weekDoneOfTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{target}'**
+  String weekDoneOfTarget(int done, int target);
 }
 
 class _AppLocalizationsDelegate

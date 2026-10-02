@@ -1,5 +1,7 @@
 import 'package:ripped/core/db/tables.dart';
+import 'package:ripped/domain/gamification/xp.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
+import 'package:ripped/domain/records/personal_records.dart';
 
 class WorkoutSetView {
   const new({
@@ -131,4 +133,64 @@ class HistoryEntry {
   final Duration duration;
   final int sets;
   final double volumeKg;
+}
+
+/// Everything that happened when a workout was finished, for the
+/// celebration sequence (design.md 3.4).
+class WorkoutOutcome {
+  const new({
+    required this.progression,
+    required this.records,
+    required this.xp,
+    required this.levelBefore,
+    required this.levelAfter,
+    required this.streakBefore,
+    required this.streakAfter,
+    this.weekCompleted = false,
+    this.comeback = false,
+    this.volumeSpike = false,
+  });
+
+  static final empty = WorkoutOutcome(
+    progression: const [],
+    records: const [],
+    xp: const [],
+    levelBefore: Levels.fromTotal(0),
+    levelAfter: Levels.fromTotal(0),
+    streakBefore: 0,
+    streakAfter: 0,
+  );
+
+  final List<ProgressionResult> progression;
+  final List<PersonalRecord> records;
+  final List<XpAward> xp;
+  final LevelInfo levelBefore;
+  final LevelInfo levelAfter;
+  final int streakBefore;
+  final int streakAfter;
+
+  /// This workout hit the weekly target.
+  final bool weekCompleted;
+
+  /// First workout after two or more weeks away.
+  final bool comeback;
+
+  /// Weekly volume jumped more than 30%: suggest recovery.
+  final bool volumeSpike;
+
+  int get xpEarned => xp.fold(0, (s, a) => s + a.amount);
+  bool get leveledUp => levelAfter.level > levelBefore.level;
+}
+
+/// One session of one exercise, for charts.
+class ExerciseSession {
+  const new({
+    required this.date,
+    required this.topWeightKg,
+    required this.bestE1rm,
+  });
+
+  final DateTime date;
+  final double topWeightKg;
+  final double? bestE1rm;
 }

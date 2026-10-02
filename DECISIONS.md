@@ -53,3 +53,23 @@ After filling slots, the generator drops the least important exercises until the
 
 ## 2026-10-02 · Drift stores DateTimes as text
 `store_date_time_values_as_text: true` (ISO-8601). Readable in raw SQLite dumps and exports; must not change after release without a migration.
+
+## 2026-10-02 · Streaks derived from workouts; no streak_weeks table
+Streak, shields and the weekly calendar are recomputed from completed workout dates on every read (`domain/gamification/streak.dart`). Week math uses calendar days (`DateTime(y, m, d + n)`), never 24-hour Durations, so DST weeks are correct.
+**Why:** a stored streak can drift from the data; a derived one can't. It's cheap at this scale.
+**Rest-day credit:** interpreted as "the target is your own days/week", so rest days are already accounted for; there's no separate credit counter.
+
+## 2026-10-02 · XP cap order: bonuses before per-set XP
+When the daily cap (400) bites, streak/comeback/workout/PR XP are granted first and per-set XP is trimmed. Volume past a healthy point earns nothing, but a capped day still celebrates what matters.
+
+## 2026-10-02 · First session with an exercise sets no PRs
+Records need a previous session to beat; otherwise every first workout would be a wall of "new best" cards.
+
+## 2026-10-02 · Reminders are inexact, local, opt-in
+`flutter_local_notifications` with `inexactAllowWhileIdle`: no exact-alarm permission (which Play audits), no server. Off by default; permission is asked only when the user turns them on. Rescheduled when training days change.
+**Note:** `wakelock_plus` is pinned to 1.8.0; 1.8.1+ needs dbus 0.8 which conflicts with the notifications plugin's Linux implementation.
+
+## 2026-10-02 · Animated exercise media: research result
+- **free-exercise-db-api videos: not usable.** The author states they bought the videos from an Instagram ad and can't verify the source ("use with caution"). Only the code and metadata are MIT.
+- **RepDB: legally clean, paid.** The Standard license ($499 one-time, 609 exercises) includes looping animations as transparent animated WebP, which Flutter plays natively with no extra package, plus a commercial-app license. The $299 Starter tier has stills only. The free preview isn't licensed for production.
+- **Plan:** stay on free-exercise-db photos until the owner decides. If RepDB is bought, add a `sources/repdb.dart` adapter; the schema, UI and loader already handle `image | gif | video` media.

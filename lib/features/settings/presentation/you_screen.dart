@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -67,6 +68,8 @@ class YouScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            SectionHeader(l10n.sectionReminders),
+            const _RemindersTiles(),
             SectionHeader(l10n.sectionAbout),
             AppListTile(
               icon: Icons.health_and_safety_outlined,
@@ -91,6 +94,70 @@ class YouScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RemindersTiles extends ConsumerWidget {
+  const new();
+
+  Future<void> _apply(
+    BuildContext context,
+    WidgetRef ref,
+    ReminderSettings next,
+  ) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await applyReminders(
+      ref,
+      next,
+      title: l10n.reminderTitle,
+      body: l10n.reminderBody,
+    );
+    if (!ok) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.notificationsDenied)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final r = ref.watch(remindersProvider).value ?? const ReminderSettings();
+    final time = TimeOfDay(hour: r.hour, minute: r.minute);
+    return Column(
+      children: [
+        AppListTile(
+          icon: Icons.notifications_none,
+          title: l10n.remindersToggle,
+          subtitle: l10n.remindersSub,
+          onTap: () => _apply(context, ref, r.copyWith(enabled: !r.enabled)),
+          trailing: Switch(
+            value: r.enabled,
+            onChanged: (on) => _apply(context, ref, r.copyWith(enabled: on)),
+          ),
+        ),
+        if (r.enabled)
+          AppListTile(
+            icon: Icons.schedule,
+            title: l10n.reminderTime,
+            trailing: Text(
+              time.format(context),
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: time,
+              );
+              if (picked == null || !context.mounted) return;
+              await _apply(
+                context,
+                ref,
+                r.copyWith(hour: picked.hour, minute: picked.minute),
+              );
+            },
+          ),
+      ],
     );
   }
 }

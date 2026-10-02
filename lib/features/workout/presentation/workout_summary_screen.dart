@@ -7,9 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/design/components/components.dart';
+import 'package:ripped/core/design/components/confetti.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/core/utils/format.dart';
+import 'package:ripped/core/utils/labels.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
@@ -20,15 +22,15 @@ import 'package:ripped/l10n/l10n.dart';
 class WorkoutSummaryScreen extends ConsumerStatefulWidget {
   const new({
     required this.workoutId,
-    this.results,
+    this.outcome,
     this.justFinished = false,
     super.key,
   });
 
   final String workoutId;
 
-  /// Progression decisions from finishing. Null when opened from history.
-  final List<ProgressionResult>? results;
+  /// What finishing produced. Null when opened from history.
+  final WorkoutOutcome? outcome;
   final bool justFinished;
 
   @override
@@ -40,14 +42,19 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _intro = AnimationController(
     vsync: this,
-    duration: AppMotion.celebrate,
+    duration: const Duration(milliseconds: 1600),
   );
 
   @override
   void initState() {
     super.initState();
     if (widget.justFinished) {
-      unawaited(HapticFeedback.heavyImpact());
+      final o = widget.outcome;
+      final big = o != null && (o.records.isNotEmpty || o.leveledUp);
+      // Haptics map (design.md 5.6): heavy for PRs and level-ups.
+      unawaited(
+        big ? HapticFeedback.heavyImpact() : HapticFeedback.mediumImpact(),
+      );
       _intro.forward();
     } else {
       _intro.value = 1;
@@ -68,7 +75,7 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
 
   /// Staggered fade + rise for section [i].
   Widget _reveal(int i, Widget child) {
-    final start = (i * 0.15).clamp(0.0, 0.6);
+    final start = (i * 0.12).clamp(0.0, 0.7);
     final anim = CurvedAnimation(
       parent: _intro,
       curve: Interval(
@@ -89,6 +96,107 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
     );
   }
 
+  /// XP, level, records, streak: in that order (design.md 3.4).
+  List<Widget> _celebration(WorkoutOutcome o, Units units) {
+    final l10n = context.l10n;
+    final text = Theme.of(context).textTheme;
+    final c = context.colors;
+    final catalog = ref.read(catalogProvider);
+    final after = o.levelAfter;
+    return [
+      if (o.xpEarned > 0) ...[
+        const SizedBox(height: AppSpacing.md),
+        _reveal(
+          2,
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: LevelBadge(
+                        level: after.level,
+                        title: l10n.levelTitle(after.title),
+                      ),
+                    ),
+                    Text(
+                      l10n.xpEarned(o.xpEarned),
+                      style: text.headlineSmall?.copyWith(color: c.accent),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                XpBar(
+                  from: o.leveledUp ? 0 : o.levelBefore.progress,
+                  value: after.progress,
+                  label: l10n.xpProgress(after.xpIntoLevel, after.xpForNext),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  o.leveledUp
+                      ? l10n.levelUp(after.level)
+                      : l10n.xpProgress(after.xpIntoLevel, after.xpForNext),
+                  style: text.bodyMedium?.copyWith(
+                    color: o.leveledUp ? c.textPrimary : c.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+      for (final (i, pr) in o.records.indexed) ...[
+        const SizedBox(height: AppSpacing.md),
+        _reveal(3 + (i ~/ 2), () {
+          final (headline, detail) = l10n.prText(
+            pr.type,
+            value: pr.value,
+            previous: pr.previous,
+            weightKg: pr.weightKg,
+            reps: pr.reps,
+            units: units,
+          );
+          return PrCard(
+            exerciseName: catalog.byId(pr.exerciseId).name,
+            headline: headline,
+            detail: detail,
+            badge: l10n.newBest,
+          );
+        }()),
+      ],
+      if (o.weekCompleted || o.comeback || o.volumeSpike)
+        const SizedBox(height: AppSpacing.md),
+      if (o.weekCompleted)
+        _reveal(
+          5,
+          _Note(
+            icon: Icons.local_fire_department,
+            text: l10n.weekTargetHit(o.streakAfter),
+            color: c.warning,
+          ),
+        ),
+      if (o.comeback)
+        _reveal(
+          5,
+          _Note(
+            icon: Icons.waving_hand_outlined,
+            text: l10n.comebackBonus,
+            color: c.textSecondary,
+          ),
+        ),
+      if (o.volumeSpike)
+        _reveal(
+          5,
+          _Note(
+            icon: Icons.info_outline,
+            text: l10n.volumeSpikeNote,
+            color: c.warning,
+          ),
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -98,7 +206,10 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
     final w = ref.watch(workoutProvider(widget.workoutId)).value;
     if (w == null) return const Scaffold(body: SizedBox.shrink());
 
-    final results = widget.results;
+    final outcome = widget.outcome;
+    final results = outcome?.progression;
+    final celebrate =
+        outcome != null && (outcome.records.isNotEmpty || outcome.leveledUp);
     return PopScope(
       canPop: !widget.justFinished,
       onPopInvokedWithResult: (didPop, _) {
@@ -107,83 +218,97 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
       child: Scaffold(
         appBar: widget.justFinished ? null : AppBar(),
         body: SafeArea(
-          child: GestureDetector(
-            // Tap anywhere skips the intro animation.
-            onTap: () => _intro.value = 1,
-            behavior: HitTestBehavior.translucent,
-            child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              children: [
-                _reveal(
-                  0,
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.justFinished) ...[
-                        const SizedBox(height: AppSpacing.xl),
-                        Icon(Icons.check_circle, color: c.success, size: 48),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(l10n.workoutCompleteTitle, style: text.titleLarge),
-                      ] else
-                        Text(
-                          DateFormat.yMMMEd().format(w.startedAt),
-                          style: text.bodyLarge?.copyWith(
-                            color: c.textSecondary,
-                          ),
-                        ),
-                      Text(w.name, style: text.displayLarge),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                _reveal(
-                  1,
-                  AppCard(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: StatTile(
-                            value: Fmt.clock(w.duration),
-                            label: l10n.statDuration,
-                          ),
-                        ),
-                        Expanded(
-                          child: StatTile(
-                            value: '${w.doneSets}',
-                            label: l10n.statSets,
-                          ),
-                        ),
-                        Expanded(
-                          child: StatTile(
-                            value: Fmt.volume(w.volumeKg, units, l10n),
-                            label: l10n.statVolume,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (results != null && results.isNotEmpty) ...[
-                  _reveal(2, SectionHeader(l10n.nextTimeTitle)),
-                  _reveal(
-                    2,
-                    AppCard(
-                      child: Column(
+          child: Stack(
+            children: [
+              GestureDetector(
+                // Tap anywhere skips the intro animation.
+                onTap: () => _intro.value = 1,
+                behavior: HitTestBehavior.translucent,
+                child: ListView(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  children: [
+                    _reveal(
+                      0,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (final r in results)
-                            _ProgressRow(result: r, units: units),
+                          if (widget.justFinished) ...[
+                            const SizedBox(height: AppSpacing.xl),
+                            Icon(
+                              Icons.check_circle,
+                              color: c.success,
+                              size: 48,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              l10n.workoutCompleteTitle,
+                              style: text.titleLarge,
+                            ),
+                          ] else
+                            Text(
+                              DateFormat.yMMMEd().format(w.startedAt),
+                              style: text.bodyLarge?.copyWith(
+                                color: c.textSecondary,
+                              ),
+                            ),
+                          Text(w.name, style: text.displayLarge),
                         ],
                       ),
                     ),
-                  ),
-                ],
-                if (!widget.justFinished)
-                  for (final e in w.exercises.where(
-                    (e) => !e.skipped && e.doneSets > 0,
-                  ))
-                    _ExerciseLog(entry: e, units: units),
-              ],
-            ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _reveal(
+                      1,
+                      AppCard(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: StatTile(
+                                value: Fmt.clock(w.duration),
+                                label: l10n.statDuration,
+                              ),
+                            ),
+                            Expanded(
+                              child: StatTile(
+                                value: '${w.doneSets}',
+                                label: l10n.statSets,
+                              ),
+                            ),
+                            Expanded(
+                              child: StatTile(
+                                value: Fmt.volume(w.volumeKg, units, l10n),
+                                label: l10n.statVolume,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (outcome != null) ..._celebration(outcome, units),
+                    if (results != null && results.isNotEmpty) ...[
+                      _reveal(6, SectionHeader(l10n.nextTimeTitle)),
+                      _reveal(
+                        6,
+                        AppCard(
+                          child: Column(
+                            children: [
+                              for (final r in results)
+                                _ProgressRow(result: r, units: units),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (!widget.justFinished)
+                      for (final e in w.exercises.where(
+                        (e) => !e.skipped && e.doneSets > 0,
+                      ))
+                        _ExerciseLog(entry: e, units: units),
+                  ],
+                ),
+              ),
+              if (widget.justFinished && celebrate)
+                const Positioned.fill(child: ConfettiBurst()),
+            ],
           ),
         ),
         bottomNavigationBar: widget.justFinished
@@ -298,4 +423,27 @@ class _ExerciseLog extends ConsumerWidget {
       ],
     );
   }
+}
+
+class _Note extends StatelessWidget {
+  const new({required this.icon, required this.text, required this.color});
+
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(text, style: Theme.of(context).textTheme.bodyLarge),
+        ),
+      ],
+    ),
+  );
 }

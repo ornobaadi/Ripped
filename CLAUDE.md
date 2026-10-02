@@ -6,10 +6,10 @@ Guidance for Claude Code when working in this repository.
 
 **Ripped** (Dart package `ripped`, app id / bundle id `com.ornobaadi.ripped`): a minimalist, local-first, personal workout app. **Android first** (Google Play); iOS later. Global, English only. Onboard → get a generated plan → log workouts → adaptive progression → habit/gamification.
 
-**Current state:** Phase 0 done. Phase 1 (core loop) implemented: onboarding → plan → Today → active workout → summary → history, all offline. Remaining for Phase 1 exit: on-device Patrol E2E, a 2-week personal trial. Next: Phase 2 (gamification).
+**Current state:** Phases 0–2 implemented. Phase 1 core loop (onboarding → plan → Today → workout → summary → history, offline). Phase 2: XP ledger + levels, weekly streak + shields, PRs, celebration, Progress tab (streak calendar, PRs, trend chart), reminders, comeback, volume-spike note. Schema v2. Open exit items: on-device Patrol E2E, personal 2-week trial, friends test. Next: Phase 3 (accounts/sync) — needs the owner's Supabase setup (`SETUP_BACKEND.md`).
 
 Map:
-- `lib/domain/` (pure Dart): `catalog/exercise.dart`, `plan/` (profile, plan, `plan_generator.dart`, `schedule.dart`), `progression/progression_engine.dart`.
+- `lib/domain/` (pure Dart): `catalog/exercise.dart`, `plan/` (profile, plan, `plan_generator.dart`, `schedule.dart`), `progression/progression_engine.dart`, `gamification/` (`xp.dart`, `streak.dart`), `records/personal_records.dart`.
 - `lib/core/`: `db/` (Drift `AppDatabase`, tables, mapping), `catalog/` (loads the bundled sqlite into memory), `design/` (tokens, theme, components), `utils/format.dart` (kg↔lb + formatting).
 - `lib/features/<name>/{data,presentation}`: `plan/data/program_repository.dart` (profile + program), `workout/data/workout_repository.dart` (logging, finish + progression in one transaction).
 - `lib/app/`: `providers.dart` (Riverpod graph), `router.dart` (3-tab shell + modal routes, onboarding redirect), `bootstrap.dart`.
@@ -20,6 +20,8 @@ Gotchas:
 - Components use `context.colors` (theme extension) and `context.l10n`; widgets under test must be wrapped with `wrapForTest`.
 - Android has product flavors, so `flutter run`/`build` need `--flavor` (pubspec sets `default-flavor: dev`).
 - **Don't run `flutter build`** — the user runs builds; give them the command. `flutter test` / `flutter analyze` are fine.
+- `dart fix --apply` may also annotate family providers with `package:riverpod/src/...` types and add `riverpod: any` to pubspec — revert both; use the documented `// ignore: specify_nonobvious_property_types` instead.
+- Week/day math: always `Schedule.weekStart` / `Schedule.addDays` (calendar days), never `Duration(days: n)` — DST days aren't 24 h.
 - Riverpod is used **without codegen** (plain `Provider`/`StreamProvider`); no freezed/json_serializable. Drift is the only codegen (`*.g.dart`).
 - Widget tests that touch Drift: wrap in `tester.runAsync`, pump with real delays, and unmount + pump at the end (see `test/app_flow_test.dart`), or Drift's stream timers fail the test.
 - `Column` inside a `Row` in a bottom bar / sheet needs `mainAxisSize: MainAxisSize.min`, or it stretches to the full height (this blanked the workout screen once).

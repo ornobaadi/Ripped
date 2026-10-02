@@ -194,7 +194,7 @@ No guessing heavy loads: first session uses a "find your weight" flow (start lig
 ### 6.4 Gamification engine
 - `xp_events` appended for: set completed (+10), workout completed (+50), PR (+25), streak week (+100), achievement (+varies). Daily cap (e.g. 400 XP) to avoid rewarding excess volume.
 - Level curve: `xpForLevel(n) = round(100 × n^1.5)` — tune with beta data.
-- Weekly streak: a week counts if `completed_sessions + rest_day_credits ≥ target`; shield auto-applies once per calendar month.
+- Weekly streak: a week counts if `completed_sessions ≥ target` (the target is the user's own days/week, so planned rest days never count against them); one shield per calendar month auto-covers a missed week, but never starts a streak. Computed from completed workout dates every time (no `streak_weeks` table): deterministic and impossible to drift. The week in progress never counts as missed.
 - Achievements defined declaratively (id, condition function, hidden flag) in `domain/gamification/achievements.dart`, evaluated after each workout.
 
 ### 6.5 PR detection

@@ -79,7 +79,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'complete',
             builder: (_, state) => WorkoutSummaryScreen(
               workoutId: state.pathParameters['id']!,
-              results: state.extra as List<ProgressionResult>?,
+              outcome: state.extra as WorkoutOutcome?,
               justFinished: true,
             ),
           ),

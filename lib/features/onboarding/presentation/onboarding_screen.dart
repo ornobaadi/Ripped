@@ -90,6 +90,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       repo.saveProgram(plan),
       Future<void>.delayed(const Duration(milliseconds: 900)),
     ]);
+    // Training days may have changed: move reminders with them.
+    final reminders = ref.read(remindersProvider).value;
+    if (mounted && (reminders?.enabled ?? false)) {
+      final l10n = context.l10n;
+      await applyReminders(
+        ref,
+        reminders!,
+        title: l10n.reminderTitle,
+        body: l10n.reminderBody,
+      );
+    }
     if (mounted) context.go('/plan?onboarding=1');
   }
 

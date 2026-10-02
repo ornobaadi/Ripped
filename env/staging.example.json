@@ -1,5 +1,6 @@
 {
   "SUPABASE_URL": "",
   "SUPABASE_ANON_KEY": "",
-  "SENTRY_DSN": ""
+  "SENTRY_DSN": "",
+  "GOOGLE_WEB_CLIENT_ID": ""
 }

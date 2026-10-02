@@ -37,10 +37,12 @@ enum WeekDayState { done, planned, rest, today }
 /// Pure scheduling rules for the Today screen.
 abstract final class Schedule {
   /// Monday 00:00 of [date]'s week.
-  static DateTime weekStart(DateTime date) {
-    final d = DateTime(date.year, date.month, date.day);
-    return d.subtract(Duration(days: d.weekday - 1));
-  }
+  /// Calendar arithmetic, not Duration: a DST day is 23 or 25 hours long.
+  static DateTime weekStart(DateTime date) =>
+      DateTime(date.year, date.month, date.day - (date.weekday - 1));
+
+  static DateTime addDays(DateTime date, int days) =>
+      DateTime(date.year, date.month, date.day + days);
 
   static bool sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
@@ -53,7 +55,7 @@ abstract final class Schedule {
     required int? lastCompletedDayIndex,
   }) {
     final start = weekStart(now);
-    final end = start.add(const Duration(days: 7));
+    final end = addDays(start, 7);
     final thisWeek = completedAt
         .where((d) => !d.isBefore(start) && d.isBefore(end))
         .toList();
@@ -67,7 +69,7 @@ abstract final class Schedule {
     final week = [
       for (var i = 0; i < 7; i++)
         () {
-          final day = start.add(Duration(days: i));
+          final day = addDays(start, i);
           if (thisWeek.any((d) => sameDay(d, day))) return WeekDayState.done;
           if (sameDay(day, now)) return WeekDayState.today;
           return trainingDays.contains(day.weekday)

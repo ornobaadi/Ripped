@@ -77,17 +77,17 @@ Scope
 **Goal:** make coming back feel rewarding — without pressure.
 
 Scope
-- [ ] `xp_events` ledger + level computation + daily XP cap
-- [ ] Weekly streak with rest-day credit + monthly shield
-- [ ] PR detection (e1RM, rep PR, volume PR) + PR cards
-- [ ] Celebration sequence on Workout Complete (respecting Reduce Motion)
-- [ ] Haptics map from `design.md §5.6`
-- [ ] Progress tab: streak calendar, PR list, per-exercise chart
-- [ ] Local reminders on training days (user-controlled, warm copy)
-- [ ] Comeback flow after ≥ 2 weeks away
-- [ ] Volume-spike warning
+- [x] `xp_events` ledger + level computation + daily XP cap
+- [x] Weekly streak with rest-day credit + monthly shield
+- [x] PR detection (e1RM, rep PR, volume PR) + PR cards
+- [x] Celebration sequence on Workout Complete (respecting Reduce Motion)
+- [x] Haptics map from `design.md §5.6` (rest-timer chime sound not added; haptics only)
+- [x] Progress tab: streak calendar, PR list, per-exercise chart
+- [x] Local reminders on training days (user-controlled, warm copy)
+- [x] Comeback flow after ≥ 2 weeks away
+- [x] Volume-spike warning
 
-**Exit criteria**
+**Exit criteria** (status 2026-10-02: engine 100% covered incl. DST/year/Sunday-Monday boundaries; shame-free copy reviewed; friends test still to do)
 - Gamification engine fully unit-tested, including timezone/week-boundary edge cases (DST, travel, Monday vs Sunday week start)
 - Copy reviewed against the shame-free checklist
 - 5–10 friends using a test build; qualitative feedback collected

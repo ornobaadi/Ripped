@@ -18,6 +18,8 @@ part 'app_database.g.dart';
     WorkoutSets,
     ExerciseStates,
     Settings,
+    XpEvents,
+    PersonalRecords,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -27,12 +29,20 @@ class AppDatabase extends _$AppDatabase {
   /// Bump with every schema change, add a step in [migration], and run
   /// `dart run drift_dev make-migrations` to snapshot + test it.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
+      await _createIndexes();
+    },
+    onUpgrade: (m, from, to) async {
+      // v2: gamification (xp ledger + personal records).
+      if (from < 2) {
+        await m.createTable(xpEvents);
+        await m.createTable(personalRecords);
+      }
       await _createIndexes();
     },
     beforeOpen: (details) async {
@@ -52,6 +62,14 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_workout_exercises_workout '
       'ON workout_exercises (workout_id, sort_order)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_xp_events_time '
+      'ON xp_events (occurred_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_prs_exercise '
+      'ON personal_records (exercise_id, achieved_at)',
     );
   }
 }

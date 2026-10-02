@@ -1,9 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
+import 'package:ripped/domain/gamification/streak.dart';
+import 'package:ripped/domain/gamification/xp.dart';
 import 'package:ripped/domain/plan/plan.dart';
 import 'package:ripped/domain/plan/profile.dart';
+import 'package:ripped/domain/plan/schedule.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
+import 'package:ripped/domain/records/personal_records.dart';
 import 'package:ripped/features/plan/data/program_repository.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
 
@@ -448,15 +452,29 @@ class WorkoutRepository {
 
   // ---------------------------------------------------------------- finish
 
-  /// Completes the workout and applies progression in one transaction.
-  Future<List<ProgressionResult>> finishWorkout(
+  /// Completes the workout in one transaction: progression, personal
+  /// records, XP (with the daily cap), and streak bookkeeping.
+  Future<WorkoutOutcome> finishWorkout(
     String workoutId, {
     required Units units,
     Feeling? feeling,
+    int weeklyTarget = 3,
   }) => _db.transaction(() async {
     final view = await workout(workoutId);
-    if (view == null) return const [];
+    if (view == null) return WorkoutOutcome.empty;
     final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day);
+
+    // State before this workout counts.
+    final before = await _completedDates();
+    final xpBefore = await _totalXp();
+    final xpToday = await _totalXp(since: midnight);
+    final streakBefore = Streaks.compute(
+      workoutDates: before,
+      weeklyTarget: weeklyTarget,
+      now: now,
+    );
+
     await (_db.update(
       _db.workouts,
     )..where((w) => w.id.equals(workoutId))).write(
@@ -469,13 +487,16 @@ class WorkoutRepository {
       ),
     );
 
-    final results = <ProgressionResult>[];
+    final progression = <ProgressionResult>[];
+    final records = <PersonalRecord>[];
+    var loggedSets = 0;
     for (final e in view.exercises.where((e) => !e.skipped)) {
       final working = [
         for (final s in e.sets.where((s) => s.done))
           SetResult(reps: s.reps, weightKg: s.weightKg),
       ];
       if (working.isEmpty) continue;
+      loggedSets += working.length;
       final exercise = _catalog.byId(e.exerciseId);
       final previous = await _state(e.exerciseId);
       final outcome = engine.evaluate(
@@ -494,16 +515,256 @@ class WorkoutRepository {
         feeling: feeling,
       );
       await _saveState(e.exerciseId, outcome, previous?.id, now);
-      results.add(
+      progression.add(
         ProgressionResult(
           exerciseId: e.exerciseId,
           decision: outcome.decision,
           next: outcome.next,
         ),
       );
+
+      final found = Records.detect(
+        exerciseId: e.exerciseId,
+        previousSessions: await _previousSessions(
+          e.exerciseId,
+          before: view.startedAt,
+        ),
+        session: working,
+      );
+      for (final pr in found) {
+        await _db
+            .into(_db.personalRecords)
+            .insert(
+              PersonalRecordsCompanion.insert(
+                exerciseId: pr.exerciseId,
+                type: pr.type.name,
+                value: pr.value,
+                previous: pr.previous,
+                weightKg: pr.weightKg,
+                reps: pr.reps,
+                workoutId: workoutId,
+                achievedAt: now,
+              ),
+            );
+      }
+      records.addAll(found);
     }
-    return results;
+
+    final weekCompleted = Streaks.completesWeek(
+      doneBefore: streakBefore.currentWeekDone,
+      target: weeklyTarget,
+    );
+    final comeback = Streaks.isComeback(
+      lastWorkout: before.isEmpty
+          ? null
+          : before.reduce((a, b) => a.isAfter(b) ? a : b),
+      now: now,
+    );
+    final xp = XpRules.forWorkout(
+      loggedSets: loggedSets,
+      prs: records.length,
+      streakWeekCompleted: weekCompleted,
+      isComeback: comeback,
+      alreadyEarnedToday: xpToday,
+    );
+    for (final a in xp) {
+      await _db
+          .into(_db.xpEvents)
+          .insert(
+            XpEventsCompanion.insert(
+              source: a.source.name,
+              sourceId: Value(workoutId),
+              amount: a.amount,
+              occurredAt: now,
+            ),
+          );
+    }
+    final gained = xp.fold(0, (s, a) => s + a.amount);
+
+    final streakAfter = Streaks.compute(
+      workoutDates: [...before, view.startedAt],
+      weeklyTarget: weeklyTarget,
+      now: now,
+    );
+
+    return WorkoutOutcome(
+      progression: progression,
+      records: records,
+      xp: xp,
+      levelBefore: Levels.fromTotal(xpBefore),
+      levelAfter: Levels.fromTotal(xpBefore + gained),
+      streakBefore: streakBefore.weeks,
+      streakAfter: streakAfter.weeks,
+      weekCompleted: weekCompleted,
+      comeback: comeback,
+      volumeSpike: await _volumeSpike(now),
+    );
   });
+
+  Future<List<DateTime>> _completedDates() =>
+      (_db.select(_db.workouts)
+            ..where((w) => w.status.equalsValue(WorkoutStatus.completed)))
+          .map((w) => w.startedAt)
+          .get();
+
+  Future<int> _totalXp({DateTime? since}) {
+    final sum = _db.xpEvents.amount.sum();
+    final q = _db.selectOnly(_db.xpEvents)..addColumns([sum]);
+    if (since != null) {
+      q.where(_db.xpEvents.occurredAt.isBiggerOrEqualValue(since));
+    }
+    return q.getSingle().then((row) => row.read(sum) ?? 0);
+  }
+
+  /// Logged sets of [exerciseId] per earlier completed session.
+  Future<List<List<SetResult>>> _previousSessions(
+    String exerciseId, {
+    required DateTime before,
+  }) async {
+    final rows = await _setsQuery(
+      exerciseId,
+      extra: _db.workouts.startedAt.isSmallerThanValue(before),
+    );
+    final bySession = <String, List<SetResult>>{};
+    for (final r in rows) {
+      final set = r.readTable(_db.workoutSets);
+      (bySession[r.readTable(_db.workoutExercises).id] ??= []).add(
+        SetResult(reps: set.reps, weightKg: set.weightKg),
+      );
+    }
+    return bySession.values.toList();
+  }
+
+  /// Logged sets of completed workouts for one exercise, oldest first.
+  Future<List<TypedResult>> _setsQuery(
+    String exerciseId, {
+    Expression<bool>? extra,
+  }) {
+    var where =
+        _db.workoutExercises.exerciseId.equals(exerciseId) &
+        _db.workoutSets.completedAt.isNotNull() &
+        _db.workouts.status.equalsValue(WorkoutStatus.completed);
+    if (extra != null) where = where & extra;
+    return (_db.select(_db.workoutSets).join([
+            innerJoin(
+              _db.workoutExercises,
+              _db.workoutExercises.id.equalsExp(
+                _db.workoutSets.workoutExerciseId,
+              ),
+            ),
+            innerJoin(
+              _db.workouts,
+              _db.workouts.id.equalsExp(_db.workoutExercises.workoutId),
+            ),
+          ])
+          ..where(where)
+          ..orderBy([OrderingTerm.asc(_db.workouts.startedAt)]))
+        .get();
+  }
+
+  /// Weekly volume (kg) for the last [weeks] weeks, oldest first, the
+  /// current week last.
+  Future<List<double>> weeklyVolumes(DateTime now, {int weeks = 5}) async {
+    final current = Schedule.weekStart(now);
+    final from = Schedule.addDays(current, -7 * (weeks - 1));
+    final rows = await _db
+        .customSelect(
+          '''
+          SELECT w.started_at AS started_at,
+            SUM(s.weight_kg * s.reps) AS volume
+          FROM workout_sets s
+          JOIN workout_exercises e ON e.id = s.workout_exercise_id
+          JOIN workouts w ON w.id = e.workout_id
+          WHERE w.status = 'completed' AND s.completed_at IS NOT NULL
+            AND s.weight_kg IS NOT NULL AND w.started_at >= ?
+          GROUP BY w.id
+          ''',
+          variables: [Variable(from)],
+          readsFrom: {_db.workouts, _db.workoutExercises, _db.workoutSets},
+        )
+        .get();
+    final totals = List<double>.filled(weeks, 0);
+    for (final r in rows) {
+      final week = Schedule.weekStart(r.read<DateTime>('started_at'));
+      // Count calendar weeks, not 168-hour blocks (DST).
+      var i = 0;
+      while (i < weeks &&
+          Schedule.addDays(from, 7 * (i + 1)).compareTo(week) <= 0) {
+        i++;
+      }
+      if (i < weeks) totals[i] += r.read<double>('volume');
+    }
+    return totals;
+  }
+
+  Future<bool> _volumeSpike(DateTime now) async {
+    final v = await weeklyVolumes(now);
+    return VolumeGuard.isSpike(
+      thisWeekKg: v.last,
+      previousWeeksKg: v.sublist(0, v.length - 1),
+    );
+  }
+
+  // ---------------------------------------------------------------- stats
+
+  Stream<int> watchTotalXp() {
+    final sum = _db.xpEvents.amount.sum();
+    return (_db.selectOnly(
+      _db.xpEvents,
+    )..addColumns([sum])).watchSingle().map((r) => r.read(sum) ?? 0);
+  }
+
+  /// Most recent first.
+  Stream<List<PersonalRecordRow>> watchRecords() =>
+      (_db.select(_db.personalRecords)
+            ..where((p) => p.deletedAt.isNull())
+            ..orderBy([(p) => OrderingTerm.desc(p.achievedAt)]))
+          .watch();
+
+  /// One point per completed session with [exerciseId], oldest first.
+  Future<List<ExerciseSession>> exerciseHistory(String exerciseId) async {
+    final rows = await _setsQuery(exerciseId);
+    final sessions = <String, ExerciseSession>{};
+    for (final r in rows) {
+      final w = r.readTable(_db.workouts);
+      final s = r.readTable(_db.workoutSets);
+      final weight = s.weightKg ?? 0;
+      final e1rm = Records.e1rm(weight, s.reps);
+      final prev = sessions[w.id];
+      sessions[w.id] = ExerciseSession(
+        date: w.startedAt,
+        topWeightKg: prev == null || weight > prev.topWeightKg
+            ? weight
+            : prev.topWeightKg,
+        bestE1rm: switch ((prev?.bestE1rm, e1rm)) {
+          (null, final b) => b,
+          (final a, null) => a,
+          (final a?, final b?) => a > b ? a : b,
+        },
+      );
+    }
+    return sessions.values.toList();
+  }
+
+  /// Loaded exercises the user has logged, most trained first.
+  Future<List<String>> trainedExerciseIds() async {
+    final rows = await _db
+        .customSelect(
+          '''
+          SELECT e.exercise_id AS id, COUNT(DISTINCT e.workout_id) AS n
+          FROM workout_exercises e
+          JOIN workouts w ON w.id = e.workout_id
+          JOIN workout_sets s ON s.workout_exercise_id = e.id
+          WHERE w.status = 'completed' AND e.skipped = 0
+            AND s.completed_at IS NOT NULL AND s.weight_kg IS NOT NULL
+          GROUP BY e.exercise_id
+          ORDER BY n DESC
+          ''',
+          readsFrom: {_db.workouts, _db.workoutExercises, _db.workoutSets},
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
+  }
 
   Future<void> abandonWorkout(String workoutId) =>
       (_db.update(_db.workouts)..where((w) => w.id.equals(workoutId))).write(

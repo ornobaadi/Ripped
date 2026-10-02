@@ -3,9 +3,11 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
+import 'package:ripped/domain/gamification/xp.dart';
 import 'package:ripped/domain/plan/plan_generator.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
+import 'package:ripped/domain/records/personal_records.dart';
 import 'package:ripped/features/plan/data/program_repository.dart';
 import 'package:ripped/features/workout/data/workout_repository.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -113,7 +115,7 @@ void main() {
     }
 
     final results = await workouts.finishWorkout(id, units: Units.kg);
-    expect(results.single.decision, ProgressionDecision.baseline);
+    expect(results.progression.single.decision, ProgressionDecision.baseline);
     expect(await workouts.activeWorkoutId(), isNull);
 
     // Session 2: baseline weight carries over.
@@ -129,7 +131,10 @@ void main() {
       await workouts.editSet(s.id, weightKg: 60, reps: squat.repMax, log: true);
     }
     final results2 = await workouts.finishWorkout(id2, units: Units.kg);
-    expect(results2.single.decision, ProgressionDecision.increaseWeight);
+    expect(
+      results2.progression.single.decision,
+      ProgressionDecision.increaseWeight,
+    );
 
     final w3 = (await workouts.workout(await workouts.startWorkout(day)))!;
     expect(w3.exercises.first.sets.first.weightKg, 62.5);
@@ -142,7 +147,10 @@ void main() {
     await workouts.setSkipped(w.exercises.first.id, skipped: true);
     final after = (await workouts.workout(id))!;
     expect(after.totalSets, w.totalSets - w.exercises.first.sets.length);
-    expect(await workouts.finishWorkout(id, units: Units.kg), isEmpty);
+    expect(
+      (await workouts.finishWorkout(id, units: Units.kg)).progression,
+      isEmpty,
+    );
   });
 
   test('add/remove sets, swap and reorder exercises', () async {
@@ -189,5 +197,80 @@ void main() {
     await workouts.abandonWorkout(id);
     expect(await workouts.activeWorkoutId(), isNull);
     expect(await workouts.watchHistory().first, isEmpty);
+  });
+
+  group('gamification on finish', () {
+    Future<String> logSquat(double kg, int reps) async {
+      final id = await workouts.startWorkout(await firstDay());
+      final w = (await workouts.workout(id))!;
+      for (final s in w.exercises.first.sets) {
+        await workouts.editSet(s.id, weightKg: kg, reps: reps, log: true);
+      }
+      return id;
+    }
+
+    test('first workout earns set + workout XP, no PRs', () async {
+      final id = await logSquat(60, 10);
+      final out = await workouts.finishWorkout(id, units: Units.kg);
+      expect(out.records, isEmpty);
+      expect(out.xp, contains(const XpAward(XpSource.workout, 50)));
+      expect(out.xpEarned, greaterThan(50));
+      expect(out.levelAfter.totalXp, out.xpEarned);
+      expect(await workouts.watchTotalXp().first, out.xpEarned);
+    });
+
+    test('beating a previous session records PRs and awards XP', () async {
+      await workouts.finishWorkout(await logSquat(60, 8), units: Units.kg);
+      final out = await workouts.finishWorkout(
+        await logSquat(65, 8),
+        units: Units.kg,
+      );
+      final types = out.records.map((r) => r.type).toSet();
+      expect(types, containsAll([PrType.e1rm, PrType.volume]));
+      final saved = await workouts.watchRecords().first;
+      expect(saved, hasLength(out.records.length));
+    });
+
+    test('the daily cap holds across several workouts', () async {
+      var total = 0;
+      for (var i = 0; i < 5; i++) {
+        final out = await workouts.finishWorkout(
+          await logSquat(60, 10),
+          units: Units.kg,
+        );
+        total += out.xpEarned;
+      }
+      expect(total, lessThanOrEqualTo(XpRules.dailyCap));
+    });
+
+    test('hitting the weekly target awards the streak week', () async {
+      final first = await workouts.finishWorkout(
+        await logSquat(60, 10),
+        units: Units.kg,
+        weeklyTarget: 1,
+      );
+      expect(first.weekCompleted, isTrue);
+      expect(first.streakAfter, 1);
+      expect(first.xp.first.source, XpSource.streakWeek);
+    });
+
+    test('exercise history has one point per session', () async {
+      await workouts.finishWorkout(await logSquat(60, 8), units: Units.kg);
+      await workouts.finishWorkout(await logSquat(65, 8), units: Units.kg);
+      final history = await workouts.exerciseHistory('barbell_back_squat');
+      expect(history.map((h) => h.topWeightKg), [60, 65]);
+      expect(history.last.bestE1rm, greaterThan(history.first.bestE1rm!));
+      expect(
+        await workouts.trainedExerciseIds(),
+        contains('barbell_back_squat'),
+      );
+    });
+
+    test('weekly volumes put this week last', () async {
+      await workouts.finishWorkout(await logSquat(50, 10), units: Units.kg);
+      final v = await workouts.weeklyVolumes(DateTime.now());
+      expect(v, hasLength(5));
+      expect(v.last, 1500);
+    });
   });
 }
