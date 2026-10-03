@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/l10n/l10n.dart';
@@ -89,7 +90,9 @@ class SetRow extends StatelessWidget {
                   onTap: _toggle,
                   child: IconButton(
                     onPressed: _toggle,
-                    icon: Icon(done ? Icons.check : Icons.check_outlined),
+                    icon: Icon(
+                      done ? Symbols.check_rounded : Symbols.check_rounded,
+                    ),
                     iconSize: 28,
                     style: IconButton.styleFrom(
                       minimumSize: const Size.square(AppTapTargets.workout),

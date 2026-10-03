@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/domain/catalog/exercise.dart';
@@ -216,5 +217,28 @@ void main() {
       semanticLabel: 'Estimated max 60 to 67.5 kg',
     ),
     size: const Size(400, 220),
+  );
+
+  goldenTest(
+    'floating_nav_bar',
+    () => Align(
+      alignment: Alignment.bottomCenter,
+      child: FloatingNavBar(
+        selectedIndex: 1,
+        onSelected: (_) {},
+        destinations: const [
+          FloatingNavDestination(
+            icon: Symbols.exercise_rounded,
+            label: 'Today',
+          ),
+          FloatingNavDestination(
+            icon: Symbols.monitoring_rounded,
+            label: 'Progress',
+          ),
+          FloatingNavDestination(icon: Symbols.person_rounded, label: 'You'),
+        ],
+      ),
+    ),
+    size: const Size(400, 120),
   );
 }

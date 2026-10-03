@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/db/settings_repository.dart';
@@ -39,27 +40,34 @@ class YouScreen extends ConsumerWidget {
     final units = ref.watch(unitsProvider);
 
     return Scaffold(
+      // Scrolls behind the floating nav bar; the bottom inset clears it.
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
+          ),
           children: [
             Text(l10n.youTitle, style: text.titleLarge),
             const AccountCard(),
             SectionHeader(l10n.sectionTraining),
             AppListTile(
-              icon: Icons.calendar_view_week_outlined,
+              icon: Symbols.calendar_view_week_rounded,
               title: l10n.viewPlan,
               onTap: () => context.push('/plan'),
             ),
             AppListTile(
-              icon: Icons.tune,
+              icon: Symbols.tune_rounded,
               title: l10n.editPlan,
               subtitle: l10n.editPlanSub,
               onTap: () => context.push('/onboarding'),
             ),
             SectionHeader(l10n.sectionPreferences),
             AppListTile(
-              icon: Icons.straighten,
+              icon: Symbols.straighten_rounded,
               title: l10n.units,
               trailing: SegmentedButton<Units>(
                 showSelectedIcon: false,
@@ -80,7 +88,7 @@ class YouScreen extends ConsumerWidget {
             SectionHeader(l10n.sectionAbout),
             if (ref.watch(appConfigProvider).supportEmail.isNotEmpty)
               AppListTile(
-                icon: Icons.mail_outline,
+                icon: Symbols.mail_outline_rounded,
                 title: l10n.sendFeedback,
                 subtitle: l10n.sendFeedbackSub,
                 onTap: () => launchUrl(
@@ -93,13 +101,13 @@ class YouScreen extends ConsumerWidget {
                 ),
               ),
             AppListTile(
-              icon: Icons.health_and_safety_outlined,
+              icon: Symbols.health_and_safety_rounded,
               title: l10n.healthDisclaimer,
               onTap: () =>
                   _showText(context, l10n.disclaimerTitle, l10n.disclaimerBody),
             ),
             AppListTile(
-              icon: Icons.favorite_outline,
+              icon: Symbols.favorite_rounded,
               title: l10n.credits,
               onTap: () => _showText(context, l10n.credits, l10n.creditsBody),
             ),
@@ -151,7 +159,7 @@ class _RemindersTiles extends ConsumerWidget {
     return Column(
       children: [
         AppListTile(
-          icon: Icons.notifications_none,
+          icon: Symbols.notifications_rounded,
           title: l10n.remindersToggle,
           subtitle: l10n.remindersSub,
           onTap: () => _apply(context, ref, r.copyWith(enabled: !r.enabled)),
@@ -162,7 +170,7 @@ class _RemindersTiles extends ConsumerWidget {
         ),
         if (r.enabled)
           AppListTile(
-            icon: Icons.schedule,
+            icon: Symbols.schedule_rounded,
             title: l10n.reminderTime,
             trailing: Text(
               time.format(context),

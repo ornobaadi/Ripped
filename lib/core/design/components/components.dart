@@ -4,6 +4,7 @@ export 'app_sheet.dart';
 export 'choice_card.dart';
 export 'empty_state.dart';
 export 'exercise_thumb.dart';
+export 'floating_nav_bar.dart';
 export 'gamification.dart';
 export 'rest_timer_bar.dart';
 export 'section_header.dart';

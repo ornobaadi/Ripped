@@ -156,7 +156,7 @@ void main() {
     });
     for (final tab in ['Progress', 'You']) {
       await step(() async {
-        await tester.tap(find.text(tab).last);
+        await tester.tap(navTab(tab));
         await settle(tester);
       });
       await audit(tab);
@@ -177,7 +177,7 @@ void main() {
       await tester.tap(find.text('Looks good'));
       await settle(tester);
       for (final tab in ['Progress', 'You', 'Today']) {
-        await tester.tap(find.text(tab).last);
+        await tester.tap(navTab(tab));
         await settle(tester);
       }
       // Any RenderFlex overflow above fails the test.
@@ -195,7 +195,7 @@ void main() {
       await tester.tap(find.text('Looks good'));
       await settle(tester);
 
-      await tester.tap(find.text('Progress'));
+      await tester.tap(navTab('Progress'));
       await settle(tester);
       expect(find.text('No workouts yet'), findsOneWidget);
       await unmount(tester);
@@ -217,3 +217,15 @@ Future<void> settle(WidgetTester tester, {int frames = 15}) async {
     await tester.pump(const Duration(milliseconds: 50));
   }
 }
+
+/// A tab in the floating nav bar. Collapsed tabs keep a zero-width label,
+/// so tap the whole tab, not its text.
+Finder navTab(String label) => find
+    .ancestor(
+      of: find.descendant(
+        of: find.byType(FloatingNavBar),
+        matching: find.text(label),
+      ),
+      matching: find.byType(GestureDetector),
+    )
+    .first;

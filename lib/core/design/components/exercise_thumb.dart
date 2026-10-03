@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/domain/catalog/exercise.dart';
@@ -26,7 +27,7 @@ class ExerciseThumb extends StatelessWidget {
           child: image == null
               ? ColoredBox(
                   color: c.surfaceRaised,
-                  child: Icon(Icons.fitness_center, color: c.textSecondary),
+                  child: Icon(Symbols.exercise_rounded, color: c.textSecondary),
                 )
               : Image.asset(
                   image.uri,

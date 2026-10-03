@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/components/confetti.dart';
@@ -171,7 +172,7 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
         _reveal(
           5,
           _Note(
-            icon: Icons.local_fire_department,
+            icon: Symbols.local_fire_department_rounded,
             text: l10n.weekTargetHit(o.streakAfter),
             color: c.warning,
           ),
@@ -180,7 +181,7 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
         _reveal(
           5,
           _Note(
-            icon: Icons.waving_hand_outlined,
+            icon: Symbols.waving_hand_rounded,
             text: l10n.comebackBonus,
             color: c.textSecondary,
           ),
@@ -189,7 +190,7 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
         _reveal(
           5,
           _Note(
-            icon: Icons.info_outline,
+            icon: Symbols.info_rounded,
             text: l10n.volumeSpikeNote,
             color: c.warning,
           ),
@@ -237,7 +238,8 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
                           if (widget.justFinished) ...[
                             const SizedBox(height: AppSpacing.xl),
                             Icon(
-                              Icons.check_circle,
+                              Symbols.check_circle_rounded,
+                              fill: 1,
                               color: c.success,
                               size: 48,
                             ),

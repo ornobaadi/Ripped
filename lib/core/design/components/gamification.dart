@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 
@@ -22,9 +23,8 @@ class StreakFlame extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            active
-                ? Icons.local_fire_department
-                : Icons.local_fire_department_outlined,
+            Symbols.local_fire_department_rounded,
+            fill: active ? 1 : 0,
             color: active ? c.warning : c.textSecondary,
             size: 22,
           ),
@@ -159,7 +159,7 @@ class PrCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.emoji_events_outlined, color: c.success),
+            Icon(Symbols.emoji_events_rounded, color: c.success),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ripped/core/design/theme.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/l10n/l10n.dart';
 
-/// Three tabs. That's it (design.md 2).
+/// Three tabs. That's it (design.md 2). The nav bar floats over the tab
+/// content, which scrolls behind it.
 class AppShell extends StatelessWidget {
   const new({required this.shell, super.key});
 
@@ -12,31 +14,24 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final c = context.colors;
     return Scaffold(
+      extendBody: true,
       body: shell,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: FloatingNavBar(
         selectedIndex: shell.currentIndex,
-        backgroundColor: c.bg,
-        indicatorColor: c.surfaceRaised,
-        surfaceTintColor: Colors.transparent,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (i) =>
+        onSelected: (i) =>
             shell.goBranch(i, initialLocation: i == shell.currentIndex),
         destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.today_outlined),
-            selectedIcon: const Icon(Icons.today),
+          FloatingNavDestination(
+            icon: Symbols.exercise_rounded,
             label: l10n.tabToday,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.insights_outlined),
-            selectedIcon: const Icon(Icons.insights),
+          FloatingNavDestination(
+            icon: Symbols.monitoring_rounded,
             label: l10n.tabProgress,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            selectedIcon: const Icon(Icons.person),
+          FloatingNavDestination(
+            icon: Symbols.person_rounded,
             label: l10n.tabYou,
           ),
         ],

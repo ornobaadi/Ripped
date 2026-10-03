@@ -1063,7 +1063,7 @@ abstract class AppLocalizations {
   /// No description provided for @creditsBody.
   ///
   /// In en, this message translates to:
-  /// **'Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Fonts: Inter and Barlow Condensed (SIL Open Font License).'**
+  /// **'Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).'**
   String get creditsBody;
 
   /// No description provided for @version.

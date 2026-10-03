@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/auth/auth_service.dart';
@@ -153,14 +154,14 @@ class _SyncLine extends ConsumerWidget {
     final c = context.colors;
     final sync = ref.watch(syncControllerProvider);
     final (icon, label) = switch (sync.status) {
-      SyncStatus.syncing => (Icons.sync, l10n.syncing),
-      SyncStatus.failed => (Icons.cloud_off_outlined, l10n.syncFailed),
-      SyncStatus.otherAccount => (Icons.info_outline, l10n.syncOtherAccount),
+      SyncStatus.syncing => (Symbols.sync_rounded, l10n.syncing),
+      SyncStatus.failed => (Symbols.cloud_off_rounded, l10n.syncFailed),
+      SyncStatus.otherAccount => (Symbols.info_rounded, l10n.syncOtherAccount),
       SyncStatus.idle when sync.lastSyncedAt != null => (
-        Icons.cloud_done_outlined,
+        Symbols.cloud_done_rounded,
         l10n.syncedAgo(_ago(l10n, sync.lastSyncedAt!)),
       ),
-      SyncStatus.idle => (Icons.cloud_queue, l10n.syncFailed),
+      SyncStatus.idle => (Symbols.cloud_rounded, l10n.syncFailed),
     };
     return Row(
       children: [

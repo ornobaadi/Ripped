@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/l10n/l10n.dart';
@@ -72,7 +73,10 @@ class ChoiceCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Icon(
-                    selected ? Icons.check_circle : Icons.circle_outlined,
+                    selected
+                        ? Symbols.check_circle_rounded
+                        : Symbols.circle_rounded,
+                    fill: selected ? 1 : 0,
                     color: selected ? c.accent : c.border,
                     semanticLabel: selected ? context.l10n.selected : null,
                   ),

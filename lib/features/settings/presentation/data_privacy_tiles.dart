@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
@@ -81,24 +82,24 @@ class _DataPrivacyTilesState extends ConsumerState<DataPrivacyTiles> {
     return Column(
       children: [
         AppListTile(
-          icon: Icons.download_outlined,
+          icon: Symbols.download_rounded,
           title: l10n.exportData,
           subtitle: l10n.exportDataSub,
           onTap: _busy ? null : _export,
         ),
         AppListTile(
-          icon: Icons.privacy_tip_outlined,
+          icon: Symbols.privacy_tip_rounded,
           title: l10n.privacyPolicy,
           onTap: () => context.push('/legal/privacy'),
         ),
         AppListTile(
-          icon: Icons.gavel_outlined,
+          icon: Symbols.gavel_rounded,
           title: l10n.terms,
           onTap: () => context.push('/legal/terms'),
         ),
         if (signedIn)
           AppListTile(
-            icon: Icons.delete_outline,
+            icon: Symbols.delete_outline_rounded,
             title: l10n.deleteAccount,
             subtitle: l10n.deleteAccountSub,
             onTap: _busy ? null : _delete,

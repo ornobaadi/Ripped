@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
@@ -193,46 +194,46 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       builder: (context) => Column(
         children: [
           AppListTile(
-            icon: Icons.info_outline,
+            icon: Symbols.info_rounded,
             title: l10n.exerciseDetails,
             onTap: () => Navigator.pop(context, 'info'),
           ),
           if (e.sets.every((s) => !s.done))
             AppListTile(
-              icon: Icons.swap_horiz,
+              icon: Symbols.swap_horiz_rounded,
               title: l10n.swapExercise,
               onTap: () => Navigator.pop(context, 'swap'),
             ),
           AppListTile(
-            icon: Icons.add,
+            icon: Symbols.add_rounded,
             title: l10n.addSet,
             onTap: () => Navigator.pop(context, 'addSet'),
           ),
           if (e.sets.any((s) => !s.done) && e.sets.length > 1)
             AppListTile(
-              icon: Icons.remove,
+              icon: Symbols.remove_rounded,
               title: l10n.removeSet,
               onTap: () => Navigator.pop(context, 'removeSet'),
             ),
           if (index > 0)
             AppListTile(
-              icon: Icons.arrow_upward,
+              icon: Symbols.arrow_upward_rounded,
               title: l10n.moveUp,
               onTap: () => Navigator.pop(context, 'up'),
             ),
           if (index < w.exercises.length - 1)
             AppListTile(
-              icon: Icons.arrow_downward,
+              icon: Symbols.arrow_downward_rounded,
               title: l10n.moveDown,
               onTap: () => Navigator.pop(context, 'down'),
             ),
           AppListTile(
-            icon: e.skipped ? Icons.undo : Icons.skip_next,
+            icon: e.skipped ? Symbols.undo_rounded : Symbols.skip_next_rounded,
             title: e.skipped ? l10n.unskipExercise : l10n.skipExercise,
             onTap: () => Navigator.pop(context, 'skip'),
           ),
           AppListTile(
-            icon: Icons.playlist_add,
+            icon: Symbols.playlist_add_rounded,
             title: l10n.addExercise,
             onTap: () => Navigator.pop(context, 'addExercise'),
           ),
@@ -298,7 +299,7 @@ class _ActiveWorkoutScreenState extends ConsumerState<ActiveWorkoutScreen>
       appBar: AppBar(
         leading: IconButton(
           tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-          icon: const Icon(Icons.keyboard_arrow_down),
+          icon: const Icon(Symbols.keyboard_arrow_down_rounded),
           onPressed: () => context.pop(),
         ),
         titleSpacing: 0,
@@ -477,7 +478,7 @@ class _UpNext extends ConsumerWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: c.textSecondary),
+          Icon(Symbols.chevron_right_rounded, color: c.textSecondary),
         ],
       ),
     );
@@ -560,17 +561,20 @@ class _ExercisePage extends ConsumerWidget {
             IconButton(
               tooltip: MaterialLocalizations.of(context).showMenuTooltip,
               onPressed: onMenu,
-              icon: const Icon(Icons.more_vert),
+              icon: const Icon(Symbols.more_vert_rounded),
             ),
           ],
         ),
         if (entry.firstTime && exercise.isWeighted && !entry.skipped) ...[
           const SizedBox(height: AppSpacing.md),
-          _Hint(icon: Icons.tune, text: l10n.findYourWeight(entry.repMax)),
+          _Hint(
+            icon: Symbols.tune_rounded,
+            text: l10n.findYourWeight(entry.repMax),
+          ),
         ] else if (entry.last != null) ...[
           const SizedBox(height: AppSpacing.md),
           _Hint(
-            icon: Icons.history,
+            icon: Symbols.history_rounded,
             text: l10n.lastTime(
               _lastSummary(entry.last!, exercise, units, l10n),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
@@ -57,7 +58,7 @@ class _AddExerciseListState extends State<_AddExerciseList> {
             autofocus: true,
             decoration: InputDecoration(
               hintText: context.l10n.searchExercises,
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(Symbols.search_rounded),
               filled: true,
               fillColor: c.surfaceRaised,
               border: OutlineInputBorder(

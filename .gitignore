@@ -78,3 +78,6 @@ desktop.ini
 # Supabase CLI local state (created by `supabase link` / `supabase start`)
 /supabase/.temp/
 /supabase/.branches/
+
+# Catalog build temp files
+*.tmp.jpg

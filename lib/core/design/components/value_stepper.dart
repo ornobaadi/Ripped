@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/l10n/l10n.dart';
@@ -62,7 +63,7 @@ class ValueStepper extends StatelessWidget {
       child: Row(
         children: [
           _StepButton(
-            icon: Icons.remove,
+            icon: Symbols.remove_rounded,
             tooltip: l10n.decrease(label),
             onPressed: value > min ? () => _change(-step) : null,
           ),
@@ -84,7 +85,7 @@ class ValueStepper extends StatelessWidget {
             ),
           ),
           _StepButton(
-            icon: Icons.add,
+            icon: Symbols.add_rounded,
             tooltip: l10n.increase(label),
             onPressed: value < max ? () => _change(step) : null,
           ),

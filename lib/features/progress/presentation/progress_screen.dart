@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/design/components/components.dart';
@@ -27,7 +28,9 @@ class ProgressScreen extends ConsumerWidget {
     final history = ref.watch(historyProvider).value;
 
     return Scaffold(
+      // Scrolls behind the floating nav bar; the bottom inset clears it.
       body: SafeArea(
+        bottom: false,
         child: CustomScrollView(
           slivers: [
             SliverPadding(
@@ -79,7 +82,7 @@ class ProgressScreen extends ConsumerWidget {
                   SectionHeader(l10n.historyTitle),
                   if (history != null && history.isEmpty)
                     EmptyState(
-                      icon: Icons.history,
+                      icon: Symbols.history_rounded,
                       title: l10n.historyEmptyTitle,
                       message: l10n.historyEmptyMessage,
                     ),
@@ -101,6 +104,9 @@ class ProgressScreen extends ConsumerWidget {
                   itemBuilder: (context, i) => _HistoryCard(entry: history[i]),
                 ),
               ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.paddingOf(context).bottom),
+            ),
           ],
         ),
       ),
@@ -162,7 +168,12 @@ class _StreakCalendar extends StatelessWidget {
                         ),
                       ),
                       child: w.status == WeekStatus.shielded
-                          ? Icon(Icons.shield, size: 12, color: c.textSecondary)
+                          ? Icon(
+                              Symbols.shield_rounded,
+                              fill: 1,
+                              size: 12,
+                              color: c.textSecondary,
+                            )
                           : null,
                     ),
                   ),
@@ -173,7 +184,8 @@ class _StreakCalendar extends StatelessWidget {
           Row(
             children: [
               Icon(
-                streak.shieldAvailable ? Icons.shield_outlined : Icons.shield,
+                Symbols.shield_rounded,
+                fill: streak.shieldAvailable ? 1 : 0,
                 size: 16,
                 color: c.textSecondary,
               ),

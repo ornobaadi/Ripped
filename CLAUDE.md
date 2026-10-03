@@ -29,6 +29,8 @@ Gotchas:
 - Catalog changes: edit `tool/build_catalog/curation.yaml`, rerun the build (uses the cached dataset; needs ffmpeg for WebP), commit `assets/catalog/`. `test/tool/catalog_integrity_test.dart` guards it.
 - Legal text lives in `assets/legal/*.md`; after editing run `python tool/build_legal.py` to regenerate `docs/*.html`.
 - Analytics: only via `analyticsProvider`; props must be in `analyticsAllowedProps` — never add health values.
+- Icons: Material Symbols Rounded (`Symbols.*_rounded`), not `Icons.*`; show state with `fill:` (0/1), not separate outlined glyphs.
+- Nav: `FloatingNavBar` floats over tab content (`extendBody`). Tab screens use `SafeArea(bottom: false)` + bottom padding `MediaQuery.paddingOf(context).bottom`. In tests tap tabs via `navTab(label)` (collapsed labels are zero-width).
 - App icon: `python tool/gen_icons.py` regenerates launcher PNGs + `store/play_icon_512.png` (placeholder mark).
 
 ## Source-of-truth docs (read before planning any work)

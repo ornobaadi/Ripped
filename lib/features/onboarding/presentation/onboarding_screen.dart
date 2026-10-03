@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
@@ -144,7 +145,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       IconButton(
                         onPressed: _back,
                         tooltip: l10n.back,
-                        icon: const Icon(Icons.arrow_back),
+                        icon: const Icon(Symbols.arrow_back_rounded),
                       )
                     else
                       const SizedBox(width: AppTapTargets.min),
@@ -282,20 +283,30 @@ class _GoalStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final options = [
-      (Goal.strength, l.goalStrength, l.goalStrengthSub, Icons.trending_up),
-      (Goal.muscle, l.goalMuscle, l.goalMuscleSub, Icons.fitness_center),
-      (Goal.fitness, l.goalFitness, l.goalFitnessSub, Icons.favorite_outline),
+      (
+        Goal.strength,
+        l.goalStrength,
+        l.goalStrengthSub,
+        Symbols.trending_up_rounded,
+      ),
+      (
+        Goal.muscle,
+        l.goalMuscle,
+        l.goalMuscleSub,
+        Symbols.fitness_center_rounded,
+      ),
+      (Goal.fitness, l.goalFitness, l.goalFitnessSub, Symbols.favorite_rounded),
       (
         Goal.fatLoss,
         l.goalFatLoss,
         l.goalFatLossSub,
-        Icons.local_fire_department_outlined,
+        Symbols.local_fire_department_rounded,
       ),
       (
         Goal.mobility,
         l.goalMobility,
         l.goalMobilitySub,
-        Icons.self_improvement,
+        Symbols.self_improvement_rounded,
       ),
     ];
     return Column(
@@ -392,14 +403,14 @@ class _EquipmentStep extends StatelessWidget {
             ChoiceCard(
               title: l.eqGym,
               subtitle: l.eqGymSub,
-              icon: Icons.fitness_center,
+              icon: Symbols.fitness_center_rounded,
               selected: gym,
               onTap: () => update(p.copyWith(equipment: {Equipment.gym})),
             ),
             ChoiceCard(
               title: l.eqBodyweight,
               subtitle: l.eqBodyweightSub,
-              icon: Icons.accessibility_new,
+              icon: Symbols.accessibility_new_rounded,
               selected: !gym && bodyweightOnly,
               onTap: () =>
                   update(p.copyWith(equipment: {Equipment.bodyweight})),
@@ -568,7 +579,7 @@ class _DisclaimerStep extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                Icons.health_and_safety_outlined,
+                Symbols.health_and_safety_rounded,
                 color: context.colors.textSecondary,
               ),
               const SizedBox(width: AppSpacing.md),

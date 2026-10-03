@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/design/components/components.dart';
@@ -26,9 +27,16 @@ class TodayScreen extends ConsumerWidget {
     final comeback = ref.watch(isComebackProvider);
 
     return Scaffold(
+      // Scrolls behind the floating nav bar; the bottom inset clears it.
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg,
+            AppSpacing.lg + MediaQuery.paddingOf(context).bottom,
+          ),
           children: [
             Row(
               children: [
@@ -182,7 +190,7 @@ class _RestCard extends ConsumerWidget {
     final l10n = context.l10n;
     return AppCard(
       child: EmptyState(
-        icon: Icons.bedtime_outlined,
+        icon: Symbols.bedtime_rounded,
         title: l10n.restDayTitle,
         message: l10n.restDayMessage,
         actionLabel: l10n.trainAnyway,
@@ -202,7 +210,7 @@ class _DoneCard extends StatelessWidget {
     final l10n = context.l10n;
     return AppCard(
       child: EmptyState(
-        icon: Icons.check_circle_outline,
+        icon: Symbols.check_circle_rounded,
         title: l10n.doneTodayTitle,
         message: l10n.doneTodayMessage(next.name),
       ),

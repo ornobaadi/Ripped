@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
@@ -103,7 +104,10 @@ class ExerciseDetailScreen extends ConsumerWidget {
                       ExerciseThumb(exercise: alt, size: 44),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(child: Text(alt.name, style: text.bodyLarge)),
-                      Icon(Icons.chevron_right, color: c.textSecondary),
+                      Icon(
+                        Symbols.chevron_right_rounded,
+                        color: c.textSecondary,
+                      ),
                     ],
                   ),
                 ),

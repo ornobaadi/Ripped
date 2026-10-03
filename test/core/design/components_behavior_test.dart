@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/components/components.dart';
 
 import '../../helpers/golden.dart';
@@ -87,6 +88,59 @@ void main() {
       ),
     );
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    handle.dispose();
+  });
+
+  testWidgets('FloatingNavBar expands the selected tab and switches', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    var selected = 0;
+    Widget bar() => wrapForTest(
+      Align(
+        alignment: Alignment.bottomCenter,
+        child: StatefulBuilder(
+          builder: (context, setState) => FloatingNavBar(
+            selectedIndex: selected,
+            onSelected: (i) => setState(() => selected = i),
+            destinations: const [
+              FloatingNavDestination(
+                icon: Symbols.exercise_rounded,
+                label: 'Today',
+              ),
+              FloatingNavDestination(
+                icon: Symbols.monitoring_rounded,
+                label: 'Progress',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(bar());
+    final today = find.bySemanticsLabel('Today');
+    final progress = find.bySemanticsLabel('Progress');
+    final collapsed = tester.getSize(progress).width;
+    expect(tester.getSize(today).width, greaterThan(collapsed));
+    expect(
+      tester.getSemantics(today),
+      isSemantics(
+        label: 'Today',
+        isButton: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
+    );
+
+    await tester.tap(progress);
+    await tester.pumpAndSettle();
+    expect(selected, 1);
+    expect(tester.getSize(progress).width, greaterThan(collapsed));
+    expect(tester.getSize(today).width, closeTo(collapsed, 0.5));
+
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     await expectLater(tester, meetsGuideline(textContrastGuideline));
     handle.dispose();
   });

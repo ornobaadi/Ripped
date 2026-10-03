@@ -98,3 +98,9 @@ Listed under Phase 3 but they only matter for Pro (Phase 7) and need accounts th
 
 ## 2026-10-02 · Legal pages generated from the in-app text
 `tool/build_legal.py` renders `assets/legal/*.md` into `docs/*.html` (GitHub Pages), so the Play listing and the app show identical policies. Includes the account-deletion web page Play requires.
+
+## 2026-10-03 — Floating nav + Material Symbols
+
+- **Decision:** M3 Expressive floating pill nav (selected tab expands with a spring, others collapse to icons); Material Symbols Rounded app-wide.
+  **Why:** Owner request; the fill axis gives selected/unselected state from one glyph. **Alternatives:** stock `NavigationBar`, Phosphor/Lucide icons.
+
