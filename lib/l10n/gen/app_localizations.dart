@@ -958,12 +958,6 @@ abstract class AppLocalizations {
   /// **'Equipment'**
   String get equipment;
 
-  /// No description provided for @mediaCredit.
-  ///
-  /// In en, this message translates to:
-  /// **'Image: {attribution}'**
-  String mediaCredit(String attribution);
-
   /// No description provided for @historyTitle.
   ///
   /// In en, this message translates to:
@@ -1063,8 +1057,20 @@ abstract class AppLocalizations {
   /// No description provided for @creditsBody.
   ///
   /// In en, this message translates to:
-  /// **'Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).'**
+  /// **'Exercise demo videos from Free Exercise DB with Videos by Arham Wani (MIT License). Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).'**
   String get creditsBody;
+
+  /// No description provided for @playDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Play demo'**
+  String get playDemo;
+
+  /// No description provided for @pauseDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause demo'**
+  String get pauseDemo;
 
   /// No description provided for @version.
   ///

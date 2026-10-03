@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +6,6 @@ import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
-import 'package:ripped/domain/catalog/exercise.dart';
 import 'package:ripped/l10n/l10n.dart';
 
 class ExerciseDetailScreen extends ConsumerWidget {
@@ -28,10 +25,6 @@ class ExerciseDetailScreen extends ConsumerWidget {
         .swapOptions(exercise.id, ref.watch(profileProvider))
         .take(5)
         .toList();
-    final images = exercise.media
-        .where((m) => m.kind == MediaKind.image)
-        .toList();
-
     String capitalize(String s) =>
         s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
@@ -47,16 +40,7 @@ class ExerciseDetailScreen extends ConsumerWidget {
         children: [
           Text(exercise.name, style: text.titleLarge),
           const SizedBox(height: AppSpacing.lg),
-          if (images.isNotEmpty)
-            _FrameLoop(uris: [for (final m in images) m.uri]),
-          if (images.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xs),
-              child: Text(
-                l10n.mediaCredit(images.first.attribution),
-                style: text.bodySmall?.copyWith(color: c.textSecondary),
-              ),
-            ),
+          ExerciseMotion(exercise: exercise),
           SectionHeader(l10n.instructions),
           for (final (i, step) in exercise.instructions.indexed)
             Padding(
@@ -114,68 +98,6 @@ class ExerciseDetailScreen extends ConsumerWidget {
               ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-/// Crossfades start/end frames on a loop: a lightweight "animation" from
-/// still images. Holds still when the system asks for reduced motion.
-class _FrameLoop extends StatefulWidget {
-  const new({required this.uris});
-
-  final List<String> uris;
-
-  @override
-  State<_FrameLoop> createState() => _FrameLoopState();
-}
-
-class _FrameLoopState extends State<_FrameLoop> {
-  Timer? _timer;
-  int _frame = 0;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _timer?.cancel();
-    if (widget.uris.length > 1 && !MediaQuery.disableAnimationsOf(context)) {
-      _timer = Timer.periodic(
-        const Duration(milliseconds: 1400),
-        (_) => setState(() => _frame = (_frame + 1) % widget.uris.length),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    return ExcludeSemantics(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        child: AspectRatio(
-          aspectRatio: 4 / 3,
-          child: ColoredBox(
-            color: Colors.white,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 450),
-              child: Image.asset(
-                widget.uris[_frame],
-                key: ValueKey(_frame),
-                fit: BoxFit.contain,
-                width: double.infinity,
-                cacheWidth: (width * dpr).round(),
-                gaplessPlayback: true,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

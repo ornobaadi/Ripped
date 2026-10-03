@@ -114,12 +114,35 @@ class ExerciseMedia {
     required this.uri,
     required this.license,
     required this.attribution,
+    this.thumbUri,
+    this.variant,
   });
 
   final MediaKind kind;
   final String uri;
   final String license;
   final String attribution;
+
+  /// Still frame for lists (videos only).
+  final String? thumbUri;
+
+  /// "dark" or "light" when the media is baked for one theme, else null.
+  final String? variant;
+}
+
+extension ExerciseMediaX on Exercise {
+  /// The demo video for the given theme ("dark" / "light"), if any.
+  ExerciseMedia? videoFor(String variant) => media
+      .where((m) => m.kind == MediaKind.video && m.variant == variant)
+      .firstOrNull;
+
+  /// Still images (exercises without a video).
+  List<ExerciseMedia> get stills =>
+      media.where((m) => m.kind == MediaKind.image).toList();
+
+  /// Best still for a thumbnail in the given theme.
+  String? thumbFor(String variant) =>
+      videoFor(variant)?.thumbUri ?? stills.firstOrNull?.uri;
 }
 
 class Exercise {

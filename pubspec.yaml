@@ -51,6 +51,7 @@ dependencies:
   url_launcher: ^6.3.2
   uuid: ^4.6.0
   # 1.8.1+ needs dbus 0.8, which conflicts with flutter_local_notifications.
+  video_player: ^2.14.1
   wakelock_plus: ">=1.8.0 <1.8.1"
 dev_dependencies:
   build_runner: ^2.16.1
@@ -79,6 +80,7 @@ flutter:
   assets:
     - assets/catalog/
     - assets/catalog/images/
+    - assets/catalog/videos/
     - assets/legal/
 
   fonts:

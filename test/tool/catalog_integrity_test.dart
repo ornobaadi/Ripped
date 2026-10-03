@@ -36,6 +36,9 @@ void main() {
       for (final m in media) {
         expect(File(m['uri'] as String).existsSync(), isTrue, reason: '$m');
         expect(m['license'], isNotEmpty);
+        if (m['thumb_uri'] case final String thumb) {
+          expect(File(thumb).existsSync(), isTrue, reason: '$m');
+        }
       }
     }
   });

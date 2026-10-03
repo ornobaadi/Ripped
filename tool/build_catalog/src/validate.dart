@@ -4,8 +4,9 @@ import 'models.dart';
 /// Pure so it can be unit-tested without network or files.
 List<String> validateCuration(
   List<CurationEntry> entries,
-  Map<String, Set<String>> sourceIdsBySource,
-) {
+  Map<String, Set<String>> sourceIdsBySource, {
+  Set<String>? videoSlugs,
+}) {
   final errors = <String>[];
   final ids = <String>{};
   final idPattern = RegExp(r'^[a-z0-9_]+$');
@@ -29,6 +30,11 @@ List<String> validateCuration(
       errors.add('${e.id}: unknown source "${e.source}"');
     } else if (!known.contains(e.sourceId)) {
       errors.add('${e.id}: "${e.sourceId}" not found in ${e.source}');
+    }
+    if (e.video != null &&
+        videoSlugs != null &&
+        !videoSlugs.contains(e.video)) {
+      errors.add('${e.id}: unknown video "${e.video}"');
     }
   }
 

@@ -31,6 +31,7 @@ Gotchas:
 - Analytics: only via `analyticsProvider`; props must be in `analyticsAllowedProps` — never add health values.
 - Icons: Material Symbols Rounded (`Symbols.*_rounded`), not `Icons.*`; show state with `fill:` (0/1), not separate outlined glyphs.
 - Nav: `FloatingNavBar` floats over tab content (`extendBody`). Tab screens use `SafeArea(bottom: false)` + bottom padding `MediaQuery.paddingOf(context).bottom`. In tests tap tabs via `navTab(label)` (collapsed labels are zero-width).
+- `ExerciseMotion` (video_player, muted, `mixWithOthers`) is disabled under `FLUTTER_TEST`; tests see the poster.
 - App icon: `python tool/gen_icons.py` regenerates launcher PNGs + `store/play_icon_512.png` (placeholder mark).
 
 ## Source-of-truth docs (read before planning any work)
@@ -91,5 +92,5 @@ supabase/{migrations,functions}/
 7. **Privacy:** never log or send health values, emails, or tokens to analytics/Sentry. Collect minimal data.
 8. **Design:** use tokens from `core/design/` — no hard-coded colors/sizes. Dark mode is default. Accent on at most one element per screen; no red/shaming for missed days. Respect Reduce Motion and text scaling up to 200%.
 9. **Wellbeing:** never reward overtraining (XP daily cap, max one progression step per session, flag >~30% weekly volume jumps).
-10. **Exercise media:** source not decided yet (PRD §8). Keep catalog schema + UI media-agnostic (image/gif/video). Never hotlink third-party APIs at runtime; only use media whose *media* license allows commercial redistribution, recorded per asset.
+10. **Exercise media:** demo videos from Free Exercise DB with Videos (owner's decision, 2026-10-03), mapped by hand via `video:` in `curation.yaml`, cropped and baked per theme (`_dark`/`_light`.mp4 on `surfaceRaised`) + first-frame `.webp` thumbs; exercises without a match keep yuhonas stills. Never hotlink at runtime. Credit sources only in You → Credits (no per-media captions).
 11. Review SQL, RLS, auth, and payment changes with extra care; one feature per branch/PR.

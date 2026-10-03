@@ -6,20 +6,27 @@
 // Fails (exit 1) on any curation error, so a bad catalog never ships.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:yaml/yaml.dart';
 
+import 'sources/exercise_video_db.dart';
 import 'sources/free_exercise_db.dart';
 import 'sources/source.dart';
 import 'src/models.dart';
 import 'src/validate.dart';
 
 /// Bump when the catalog schema or content changes.
-const catalogVersion = 2;
+const catalogVersion = 3;
 const maxImageSize = 720;
+
+/// Demo videos: square, muted, looping, baked onto the media tile colour of
+/// each theme (AppColors.surfaceRaised) so they sit flush in the UI.
+const videoSize = 360;
+const videoBackgrounds = {'dark': '0x202328', 'light': '0xF2F2F0'};
 
 Future<void> main() async {
   final root = Directory.current.path;
@@ -41,7 +48,10 @@ Future<void> main() async {
       CurationEntry.fromYaml(e as YamlMap),
   ];
 
+  final videoDb = ExerciseVideoDb(cacheDir: cacheDir);
+
   stdout.writeln('Fetching sources...');
+  final videoIndex = await videoDb.fetchIndex();
   final raw = <String, Map<String, RawExercise>>{
     for (final s in sources.values)
       s.key: {for (final r in await s.fetchExercises()) r.sourceId: r},
@@ -49,7 +59,7 @@ Future<void> main() async {
 
   final errors = validateCuration(entries, {
     for (final MapEntry(:key, :value) in raw.entries) key: value.keys.toSet(),
-  });
+  }, videoSlugs: videoIndex.keys.toSet());
   if (errors.isNotEmpty) {
     stderr.writeln('Curation has ${errors.length} problem(s):');
     for (final e in errors) {
@@ -60,6 +70,7 @@ Future<void> main() async {
 
   if (outDir.existsSync()) await outDir.delete(recursive: true);
   await Directory('${outDir.path}/images').create(recursive: true);
+  await Directory('${outDir.path}/videos').create(recursive: true);
   final db = sqlite3.open('${outDir.path}/catalog.sqlite');
   _createSchema(db);
 
@@ -79,7 +90,35 @@ Future<void> main() async {
     final source = sources[e.source]!;
     final r = raw[e.source]![e.sourceId]!;
     final media = <MediaItem>[];
-    for (final (i, path) in r.imagePaths.indexed) {
+    if (e.video case final slug?) {
+      final src = await videoDb.fetchVideo(slug, videoIndex[slug]!);
+      final crop = await _motionCrop(src);
+      for (final MapEntry(key: variant, value: bg)
+          in videoBackgrounds.entries) {
+        final rel = 'assets/catalog/videos/${e.id}_$variant.mp4';
+        final thumb = 'assets/catalog/videos/${e.id}_$variant.webp';
+        await _writeVideo(
+          src,
+          crop,
+          bg,
+          File('$root/$rel'),
+          File('$root/$thumb'),
+        );
+        media.add(
+          MediaItem(
+            kind: 'video',
+            uri: rel,
+            thumbUri: thumb,
+            variant: variant,
+            license: videoDb.license,
+            attribution: videoDb.attribution,
+          ),
+        );
+      }
+    }
+    // Stills only where there's no video; keeps the app small.
+    for (final (i, path)
+        in media.isEmpty ? r.imagePaths.indexed : const <(int, String)>[]) {
       // Flat folder: Flutter asset entries don't include subdirectories.
       final rel = 'assets/catalog/images/${e.id}_$i.$imageExt';
       await _writeImage(await source.fetchImage(path), File('$root/$rel'));
@@ -126,7 +165,11 @@ Future<void> main() async {
     ..execute('VACUUM')
     ..close();
 
-  await _writeAttributions(File('${outDir.path}/ATTRIBUTIONS.md'), sources);
+  await _writeAttributions(
+    File('${outDir.path}/ATTRIBUTIONS.md'),
+    sources,
+    videoDb,
+  );
   stdout.writeln('\nBuilt ${entries.length} exercises -> ${outDir.path}');
 }
 
@@ -224,6 +267,7 @@ Future<void> _writeImage(Uint8List bytes, File out) async {
 Future<void> _writeAttributions(
   File out,
   Map<String, CatalogSource> sources,
+  ExerciseVideoDb videoDb,
 ) async {
   final b = StringBuffer()
     ..writeln('# Exercise data attributions')
@@ -235,5 +279,128 @@ Future<void> _writeAttributions(
       ..writeln('- **${s.key}** — ${s.attribution}')
       ..writeln('  License: ${s.license}');
   }
+  b
+    ..writeln('- **exercise_video_db** — ${videoDb.attribution}')
+    ..writeln('  License: ${videoDb.license}');
   await out.writeAsString(b.toString());
+}
+
+/// Square crop (x, y, side) around everything that moves, from a quick pass
+/// over low-res greyscale frames. Background is white; the figure isn't.
+Future<(int, int, int)> _motionCrop(File src) async {
+  const w = 240;
+  final probe = await Process.run('ffprobe', [
+    '-v',
+    'error',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'stream=width,height',
+    '-of',
+    'csv=p=0',
+    src.path,
+  ]);
+  final [srcW, srcH] = (probe.stdout as String)
+      .trim()
+      .split(',')
+      .map(int.parse)
+      .toList();
+  final h = (srcH * w / srcW).round();
+  final res = await Process.run('ffmpeg', [
+    '-loglevel',
+    'error',
+    '-i',
+    src.path,
+    '-vf',
+    'fps=4,scale=$w:$h,format=gray',
+    '-f',
+    'rawvideo',
+    '-',
+  ], stdoutEncoding: null);
+  if (res.exitCode != 0) {
+    throw ProcessException('ffmpeg', [], '${res.stderr}', res.exitCode);
+  }
+  final px = res.stdout as List<int>;
+  var (x0, y0, x1, y1) = (w, h, 0, 0);
+  for (var i = 0; i < px.length; i++) {
+    if (px[i] > 235) continue;
+    final x = i % w;
+    final y = (i ~/ w) % h;
+    if (x < x0) x0 = x;
+    if (x > x1) x1 = x;
+    if (y < y0) y0 = y;
+    if (y > y1) y1 = y;
+  }
+  final scale = srcW / w;
+  final side = max(x1 - x0, y1 - y0) * scale * 1.12;
+  final cx = (x0 + x1) / 2 * scale;
+  final cy = (y0 + y1) / 2 * scale;
+  return ((cx - side / 2).round(), (cy - side / 2).round(), side.round());
+}
+
+/// Muted looping H.264 + a still of the first frame for list thumbnails.
+/// White is keyed out and replaced with the theme's tile colour.
+Future<void> _writeVideo(
+  File src,
+  (int, int, int) crop,
+  String background,
+  File out,
+  File thumb,
+) async {
+  final (x, y, side) = crop;
+  // Pad generously with white so a crop near the edge never fails.
+  final pad = side;
+  final frame =
+      'pad=iw+${2 * pad}:ih+${2 * pad}:$pad:$pad:white,'
+      'crop=$side:$side:${x + pad}:${y + pad},'
+      'scale=$videoSize:$videoSize:flags=lanczos,'
+      'colorkey=0xFFFFFF:0.05:0.10';
+  final graph =
+      'color=$background:s=${videoSize}x$videoSize[bg];'
+      '[0:v]fps=24,$frame[fg];[bg][fg]overlay=shortest=1,format=yuv420p';
+  Future<void> run(List<String> args) async {
+    final r = await Process.run('ffmpeg', [
+      '-y',
+      '-loglevel',
+      'error',
+      ...args,
+    ]);
+    if (r.exitCode != 0) {
+      throw ProcessException('ffmpeg', args, '${r.stderr}', r.exitCode);
+    }
+  }
+
+  await run([
+    '-i',
+    src.path,
+    '-filter_complex',
+    graph,
+    '-an',
+    '-map_metadata',
+    '-1',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'slow',
+    '-crf',
+    '30',
+    '-profile:v',
+    'main',
+    '-movflags',
+    '+faststart',
+    out.path,
+  ]);
+  await run([
+    '-i',
+    out.path,
+    '-frames:v',
+    '1',
+    '-map_metadata',
+    '-1',
+    '-c:v',
+    'libwebp',
+    '-quality',
+    '80',
+    thumb.path,
+  ]);
 }

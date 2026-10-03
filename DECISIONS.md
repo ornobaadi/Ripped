@@ -99,8 +99,10 @@ Listed under Phase 3 but they only matter for Pro (Phase 7) and need accounts th
 ## 2026-10-02 · Legal pages generated from the in-app text
 `tool/build_legal.py` renders `assets/legal/*.md` into `docs/*.html` (GitHub Pages), so the Play listing and the app show identical policies. Includes the account-deletion web page Play requires.
 
-## 2026-10-03 — Floating nav + Material Symbols
+## 2026-10-03 — Exercise demo videos + floating nav
 
+- **Decision:** Use Free Exercise DB with Videos for demo videos (owner accepts the provenance risk). 109/181 exercises hand-mapped; videos are cropped to the moving figure, white keyed out onto the theme tile colour, 360 px H.264 CRF 30, ~16 MB total, bundled. Stills stay for the rest.
+  **Why:** MP4 was 4–8× smaller than animated WebP (alpha WebP ~500 KB each). Baking per theme avoids needing alpha. **Alternatives:** RepDB ($499), runtime streaming (breaks offline + rule 10).
 - **Decision:** M3 Expressive floating pill nav (selected tab expands with a spring, others collapse to icons); Material Symbols Rounded app-wide.
-  **Why:** Owner request; the fill axis gives selected/unselected state from one glyph. **Alternatives:** stock `NavigationBar`, Phosphor/Lucide icons.
+  **Why:** Owner request; fill axis gives selected/unselected state from one glyph.
 

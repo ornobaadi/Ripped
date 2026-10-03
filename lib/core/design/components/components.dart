@@ -3,6 +3,7 @@ export 'app_card.dart';
 export 'app_sheet.dart';
 export 'choice_card.dart';
 export 'empty_state.dart';
+export 'exercise_motion.dart';
 export 'exercise_thumb.dart';
 export 'floating_nav_bar.dart';
 export 'gamification.dart';

@@ -64,6 +64,7 @@ class CurationEntry {
     this.isBodyweight = false,
     this.unilateral = false,
     this.timed = false,
+    this.video,
   });
 
   factory fromYaml(Map<dynamic, dynamic> y) => CurationEntry(
@@ -80,6 +81,7 @@ class CurationEntry {
     isBodyweight: (y['bodyweight'] as bool?) ?? false,
     unilateral: (y['unilateral'] as bool?) ?? false,
     timed: (y['timed'] as bool?) ?? false,
+    video: y['video'] as String?,
   );
 
   final String id;
@@ -97,6 +99,9 @@ class CurationEntry {
 
   /// Prescribed in seconds instead of reps (planks, carries, stretches).
   final bool timed;
+
+  /// Demo video slug in the video source; null keeps the still images.
+  final String? video;
 }
 
 /// One media item. Kind is image | gif | video (PRD 8: media-agnostic).

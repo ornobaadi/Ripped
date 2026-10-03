@@ -504,11 +504,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment => 'Equipment';
 
   @override
-  String mediaCredit(String attribution) {
-    return 'Image: $attribution';
-  }
-
-  @override
   String get historyTitle => 'History';
 
   @override
@@ -561,7 +556,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditsBody =>
-      'Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).';
+      'Exercise demo videos from Free Exercise DB with Videos by Arham Wani (MIT License). Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).';
+
+  @override
+  String get playDemo => 'Play demo';
+
+  @override
+  String get pauseDemo => 'Pause demo';
 
   @override
   String version(String version) {

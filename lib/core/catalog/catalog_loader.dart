@@ -55,6 +55,8 @@ abstract final class CatalogLoader {
                 uri: m['uri'] as String,
                 license: m['license'] as String,
                 attribution: m['attribution'] as String,
+                thumbUri: m['thumb_uri'] as String?,
+                variant: m['variant'] as String?,
               ),
           ],
           substitutes: subs[r['id']] ?? const [],

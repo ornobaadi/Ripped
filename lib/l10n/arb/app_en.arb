@@ -332,14 +332,6 @@
   "primaryMuscles": "Main muscles",
   "secondaryMuscles": "Also works",
   "equipment": "Equipment",
-  "mediaCredit": "Image: {attribution}",
-  "@mediaCredit": {
-    "placeholders": {
-      "attribution": {
-        "type": "String"
-      }
-    }
-  },
   "historyTitle": "History",
   "historyEmptyTitle": "No workouts yet",
   "historyEmptyMessage": "Finish your first workout and it shows up here.",
@@ -366,7 +358,9 @@
   "viewPlan": "View current plan",
   "healthDisclaimer": "Health disclaimer",
   "credits": "Credits",
-  "creditsBody": "Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).",
+  "creditsBody": "Exercise demo videos from Free Exercise DB with Videos by Arham Wani (MIT License). Exercise data and images from free-exercise-db by yuhonas, released into the public domain (Unlicense). Icons: Material Symbols by Google (Apache License 2.0). Fonts: Inter and Barlow Condensed (SIL Open Font License).",
+  "playDemo": "Play demo",
+  "pauseDemo": "Pause demo",
   "version": "Version {version}",
   "@version": {
     "placeholders": {
