@@ -534,6 +534,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get units => 'Units';
 
   @override
+  String get usageData => 'Share anonymous usage data';
+
+  @override
+  String get usageDataSub =>
+      'Which features get used. Never your workouts, weights or account.';
+
+  @override
   String get appearance => 'Appearance';
 
   @override

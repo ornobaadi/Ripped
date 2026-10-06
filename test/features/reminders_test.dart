@@ -79,6 +79,21 @@ void main() {
     setUp(() => db = AppDatabase(DatabaseConnection(NativeDatabase.memory())));
     tearDown(() => db.close());
 
+    test('usage data on by default; install id is stable', () async {
+      final repo = SettingsRepository(db);
+      expect(await repo.watchAnalyticsEnabled().first, isTrue);
+      await repo.saveAnalyticsEnabled(enabled: false);
+      expect(await repo.watchAnalyticsEnabled().first, isFalse);
+
+      final id = await repo.installId();
+      expect(id, isNotEmpty);
+      expect(await repo.installId(), id);
+
+      expect(await repo.reviewAskedAt(), isNull);
+      await repo.saveReviewAskedAt(DateTime(2026, 10, 6));
+      expect(await repo.reviewAskedAt(), DateTime(2026, 10, 6));
+    });
+
     test('dark by default, round-trips, ignores junk', () async {
       final repo = SettingsRepository(db);
       expect(await repo.theme(), 'dark');

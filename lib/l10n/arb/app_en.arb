@@ -351,6 +351,8 @@
   "sectionPreferences": "Preferences",
   "sectionAbout": "About",
   "units": "Units",
+  "usageData": "Share anonymous usage data",
+  "usageDataSub": "Which features get used. Never your workouts, weights or account.",
   "appearance": "Appearance",
   "themeSystem": "Match phone",
   "themeSystemSub": "Follows your phone's light or dark setting",

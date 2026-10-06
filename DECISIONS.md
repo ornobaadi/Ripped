@@ -113,3 +113,10 @@ Listed under Phase 3 but they only matter for Pro (Phase 7) and need accounts th
 - **Decision:** Exercise videos: remove only edge-connected white (flood fill) plus large enclosed pure-white areas; 540 px, CRF 24.
   **Why:** A white colour key cut holes in the figure's highlights. **Alternatives:** ML matting (heavy), keeping the white tile (clashes with dark UI).
 
+## 2026-10-06 — Analytics delivery and review prompt
+
+- **Decision:** PostHog via its HTTP batch API instead of the SDK; random install id, no person profiles, GeoIP off, opt-out switch, on by default.
+  **Why:** No autocapture means nothing beyond the allow-listed events can leak; no native dependency to break the build. **Alternatives:** posthog_flutter SDK, Firebase Analytics, opt-in only (cleaner for EU consent, but far less data in a small beta).
+- **Decision:** Store review prompt after 3+ workouts and a positive outcome, max once per 120 days.
+  **Why:** Phase 5 scope; asking at a high point, never mid-workout.
+

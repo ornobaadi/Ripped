@@ -87,6 +87,18 @@ class _DataPrivacyTilesState extends ConsumerState<DataPrivacyTiles> {
           subtitle: l10n.exportDataSub,
           onTap: _busy ? null : _export,
         ),
+        if (ref.watch(appConfigProvider).hasAnalytics)
+          AppListTile(
+            icon: Symbols.monitoring_rounded,
+            title: l10n.usageData,
+            subtitle: l10n.usageDataSub,
+            trailing: Switch(
+              value: ref.watch(analyticsEnabledProvider).value ?? true,
+              onChanged: (on) => ref
+                  .read(settingsRepositoryProvider)
+                  .saveAnalyticsEnabled(enabled: on),
+            ),
+          ),
         AppListTile(
           icon: Symbols.privacy_tip_rounded,
           title: l10n.privacyPolicy,

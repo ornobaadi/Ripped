@@ -129,6 +129,7 @@ Scope
 - [~] Performance: backend init moved off the startup path; measure cold start on a device (`flutter run --profile`)
 - [ ] Device matrix testing
 - [x] Analytics events for the funnel (no health values; allow-listed props) — provider (PostHog) not yet chosen
+- [x] Theme switch (Match phone / Light / Dark) and Chrome preview build
 - [~] Store listing: text, Data Safety answers, content answers in `RELEASE.md`; owner takes screenshots + feature graphic
 - [x] In-app feedback link (needs `SUPPORT_EMAIL`); respond to every beta tester
 
@@ -142,10 +143,10 @@ Scope
 ## Phase 5 — Public launch (free)
 
 Scope
-- [ ] Staged rollout (Play) / phased release (iOS)
-- [ ] Monitoring dashboard: crashes, funnel, retention cohorts
-- [ ] In-app review prompt after a positive moment (e.g. 3rd completed workout with a PR), never mid-workout
-- [ ] Launch channels: Reddit fitness communities (follow their self-promo rules), Product Hunt, local communities, short-form video of the 1-tap logging
+- [~] Staged rollout (Play) / phased release (iOS): steps in `RELEASE.md` §10; owner runs it after production access
+- [~] Monitoring dashboard: crashes (Sentry) + funnel/retention (PostHog over HTTPS, anonymous install id, user can opt out) are wired; owner adds `SENTRY_DSN` / `POSTHOG_KEY` and builds the dashboard (`RELEASE.md` §8)
+- [x] In-app review prompt after a positive moment (3+ workouts and a PR, level-up or completed week), never mid-workout, at most every 120 days
+- [~] Launch channels (drafts in `RELEASE.md` §10; owner posts): Reddit fitness communities (follow their self-promo rules), Product Hunt, local communities, short-form video of the 1-tap logging
 
 **Exit criteria**
 - 100% rollout with crash-free ≥ 99.8%

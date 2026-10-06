@@ -38,4 +38,4 @@ We may update these terms; we'll tell you in the app if changes are meaningful.
 
 ## Contact
 
-[CONTACT EMAIL]
+ornobaadi.dev@gmail.com

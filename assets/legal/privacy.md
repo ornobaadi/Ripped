@@ -28,6 +28,10 @@ Our backend is provided by Supabase, which stores the data on our behalf.
 
 If the app crashes we may receive a technical crash report (device model, OS version, app version, the error). Crash reports never include your email, name or training values.
 
+## Anonymous usage data
+
+To see which features are used and where people get stuck, the app sends simple events such as "opened the app", "started a workout" or "finished a workout", with a few non-personal details (for example the number of sets or minutes). Each event carries a random ID created for your install. It is not linked to your account, and events never include your email, name, weights, reps or body data. We use PostHog to store these events. You can turn this off at any time in You → Share anonymous usage data.
+
 ## Notifications
 
 Workout reminders are scheduled on your phone. They're off unless you turn them on.
@@ -36,6 +40,7 @@ Workout reminders are scheduled on your phone. They're off unless you turn them 
 
 - **Export:** You → Export my data gives you a full copy (JSON + CSV) at any time.
 - **Delete:** You → Delete account permanently removes your account and all backed-up data from our servers, and clears the app on that phone.
+- **Usage data:** You → Share anonymous usage data turns the anonymous events off.
 - **Without an account:** uninstalling the app removes everything.
 
 ## Children
@@ -48,4 +53,4 @@ If this policy changes in a meaningful way, we'll tell you in the app.
 
 ## Contact
 
-Questions or requests: [CONTACT EMAIL]
+Questions or requests: ornobaadi.dev@gmail.com

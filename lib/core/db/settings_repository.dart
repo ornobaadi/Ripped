@@ -40,6 +40,40 @@ class SettingsRepository {
         SettingsCompanion.insert(key: _theme, value: theme),
       );
 
+  static const _analyticsOn = 'analytics.enabled';
+  static const _installId = 'analytics.installId';
+  static const _reviewAskedAt = 'review.askedAt';
+
+  /// Anonymous usage data: on unless the user turns it off.
+  Stream<bool> watchAnalyticsEnabled() =>
+      _one(_analyticsOn).watchSingleOrNull().map((r) => r?.value != 'false');
+
+  Future<void> saveAnalyticsEnabled({required bool enabled}) =>
+      _put(_analyticsOn, enabled.toString());
+
+  /// Random id for this install; not linked to the account.
+  Future<String> installId() async {
+    final existing = await _one(_installId).getSingleOrNull();
+    if (existing != null) return existing.value;
+    final id = newId();
+    await _put(_installId, id);
+    return id;
+  }
+
+  Future<DateTime?> reviewAskedAt() async => DateTime.tryParse(
+    (await _one(_reviewAskedAt).getSingleOrNull())?.value ?? '',
+  );
+
+  Future<void> saveReviewAskedAt(DateTime at) =>
+      _put(_reviewAskedAt, at.toIso8601String());
+
+  SimpleSelectStatement<$SettingsTable, Setting> _one(String key) =>
+      _db.select(_db.settings)..where((s) => s.key.equals(key));
+
+  Future<void> _put(String key, String value) => _db
+      .into(_db.settings)
+      .insertOnConflictUpdate(SettingsCompanion.insert(key: key, value: value));
+
   SimpleSelectStatement<$SettingsTable, Setting> get _themeQuery =>
       _db.select(_db.settings)..where((s) => s.key.equals(_theme));
 

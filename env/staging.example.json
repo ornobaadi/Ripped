@@ -3,5 +3,7 @@
   "SUPABASE_PUBLISHABLE_KEY": "",
   "SENTRY_DSN": "",
   "GOOGLE_WEB_CLIENT_ID": "",
-  "SUPPORT_EMAIL": ""
+  "SUPPORT_EMAIL": "",
+  "POSTHOG_KEY": "",
+  "POSTHOG_HOST": ""
 }

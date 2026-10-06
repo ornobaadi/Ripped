@@ -50,7 +50,9 @@ PAGE = """<!doctype html>
 def inline(text: str) -> str:
     text = html.escape(text)
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
-    return re.sub(r"\[([^\]]+@[^\]]+)\]", r'<a href="mailto:\1">\1</a>', text)
+    return re.sub(
+        r"([\w.+-]+@[\w-]+(?:\.[\w-]+)+)", r'<a href="mailto:\1">\1</a>', text
+    )
 
 
 def render(md: str) -> tuple[str, str]:

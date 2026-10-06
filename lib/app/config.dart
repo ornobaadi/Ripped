@@ -12,6 +12,8 @@ class AppConfig {
     required this.sentryDsn,
     required this.googleWebClientId,
     required this.supportEmail,
+    required this.posthogKey,
+    required this.posthogHost,
   });
 
   factory fromEnvironment(AppFlavor flavor) => AppConfig(
@@ -23,6 +25,8 @@ class AppConfig {
     sentryDsn: const String.fromEnvironment('SENTRY_DSN'),
     googleWebClientId: const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
     supportEmail: const String.fromEnvironment('SUPPORT_EMAIL'),
+    posthogKey: const String.fromEnvironment('POSTHOG_KEY'),
+    posthogHost: const String.fromEnvironment('POSTHOG_HOST'),
   );
 
   final AppFlavor flavor;
@@ -35,6 +39,14 @@ class AppConfig {
 
   /// Where "Send feedback" goes. Hidden when empty.
   final String supportEmail;
+
+  /// PostHog project key (public, write-only). Analytics is off when empty.
+  final String posthogKey;
+
+  /// e.g. https://eu.i.posthog.com or https://us.i.posthog.com.
+  final String posthogHost;
+
+  bool get hasAnalytics => posthogKey.isNotEmpty && posthogHost.isNotEmpty;
 
   bool get isProd => flavor == AppFlavor.prod;
 

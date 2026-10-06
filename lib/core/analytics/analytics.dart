@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 /// The beta funnel (phases.md Phase 4). Behaviour only: never weights,
 /// reps, body data, emails or names (CLAUDE.md rule 7).
 enum AnalyticsEvent {
+  appOpened,
   onboardingCompleted,
   planAccepted,
   workoutStarted,
@@ -33,7 +34,6 @@ abstract interface class Analytics {
 }
 
 /// Keeps only allow-listed keys with plain, non-identifying values.
-@visibleForTesting
 Map<String, Object> sanitizeAnalyticsProps(Map<String, Object> props) => {
   for (final MapEntry(:key, :value) in props.entries)
     if (analyticsAllowedProps.contains(key) &&

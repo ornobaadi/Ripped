@@ -1012,6 +1012,18 @@ abstract class AppLocalizations {
   /// **'Units'**
   String get units;
 
+  /// No description provided for @usageData.
+  ///
+  /// In en, this message translates to:
+  /// **'Share anonymous usage data'**
+  String get usageData;
+
+  /// No description provided for @usageDataSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Which features get used. Never your workouts, weights or account.'**
+  String get usageDataSub;
+
   /// No description provided for @appearance.
   ///
   /// In en, this message translates to:

@@ -8,8 +8,7 @@ its current wording; Google renames things often.
 
 ## 0. Before you start
 
-- [ ] Replace `[CONTACT EMAIL]` in `assets/legal/privacy.md`, `terms.md` and
-      `delete-account.md`, then run `python tool/build_legal.py`.
+- [x] Contact email is in the legal pages (`assets/legal/*.md`, `docs/`).
 - [ ] Add the same email as `SUPPORT_EMAIL` in `env/prod.json` (shows
       **Send feedback** in the app).
 - [ ] Publish the legal pages: GitHub repo → **Settings → Pages → Deploy from
@@ -73,10 +72,11 @@ language English (United States), **App**, **Free**, accept the declarations.
 | Health and fitness → **Fitness info** | Yes (workout logs, when signed in) | No | App functionality (backup/sync) | Optional |
 | App info and performance → **Crash logs** | Only if you add a Sentry DSN | No | Analytics / diagnostics | — |
 
+| App activity → **App interactions** | Only if you set `POSTHOG_KEY` | No | Analytics | Optional (user can turn it off) |
+| Device or other IDs | Only if you set `POSTHOG_KEY` (random install ID) | No | Analytics | Optional |
+
 Everything else (location, contacts, photos, messages, financial, etc.):
-**not collected**. Data is not sold and not used for ads. The analytics
-events in the app currently go nowhere; if you add PostHog later, add
-**App activity → App interactions** (analytics) to this form.
+**not collected**. Data is not sold and not used for ads.
 
 ## 6. Store listing (Grow → Store presence → Main store listing)
 
@@ -149,9 +149,51 @@ access requirements.
 6. Ask testers to use it for real workouts and send feedback (You → Send
    feedback). Reply to every message.
 
-## 8. Before applying for production
+## 8. Monitoring (set up before the closed test)
+
+Both are optional and off until you add the keys to `env/prod.json`.
+
+- **Crashes:** create a free project at <https://sentry.io> (platform:
+  Flutter) → copy the **DSN** → `"SENTRY_DSN"`.
+- **Funnel and retention:** create a free project at <https://posthog.com>
+  (pick the EU or US region) → Project settings → copy the **Project API
+  key** (starts with `phc_`) → `"POSTHOG_KEY"`, and set `"POSTHOG_HOST"` to
+  `https://eu.i.posthog.com` or `https://us.i.posthog.com` to match.
+  The key is write-only and safe to ship.
+- In PostHog, build one dashboard:
+  1. **Funnel:** `onboardingCompleted` → `planAccepted` → `workoutStarted`
+     → `workoutCompleted`.
+  2. **Retention:** first `appOpened` → returning `appOpened`, weekly (this
+     is the D7 number in the exit criteria).
+  3. **Trend:** `workoutCompleted` per week, `workoutAbandoned` per week.
+
+## 9. Before applying for production
 
 - Crash-free sessions ≥ 99.8% (Play Console → Quality → Android vitals)
 - 7-day retention ≥ 25% among testers
 - No open P0/P1 bugs
 - Phase 4 checklist in `phases.md` done
+
+## 10. Public launch (Phase 5)
+
+1. **Production access:** Play Console → Dashboard → **Apply for
+   production** once the closed test meets Google's requirement. Answer the
+   questions about your test honestly (who tested, what you changed).
+2. **Staged rollout:** Production → Create release → upload the bundle →
+   set **Rollout percentage** to 10%. Watch Android vitals and Sentry for
+   2–3 days, then 25% → 50% → 100%. Use **Halt rollout** if crash-free
+   sessions drop below 99.8%.
+3. **Reviews:** the app asks for a rating by itself: after someone has
+   finished at least 3 workouts and just hit a record, a level-up or a
+   completed week, never during a workout, and at most once every 120 days.
+   Google decides whether the sheet really shows. Reply to every review.
+4. **Launch posts** (read each community's self-promotion rules first):
+   - Reddit: r/androidapps, r/fitness (weekly self-promo thread only),
+     r/bodyweightfitness, r/homegym. Lead with what it does and that it is
+     free, offline and has no ads. Ask for feedback, not downloads.
+   - Product Hunt: tagline "A workout plan that adapts every session.
+     Offline, no ads."; first comment: why you built it, what's next.
+   - A 15–20 second screen recording of logging a set with one tap and the
+     rest timer starting is the best single asset; reuse it everywhere.
+5. Keep a weekly note of the PostHog retention number for the first four
+   weeks (Phase 5 exit criterion).

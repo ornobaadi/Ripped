@@ -1,12 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:ripped/app/config.dart';
 import 'package:ripped/core/analytics/analytics.dart';
+import 'package:ripped/core/analytics/posthog_analytics.dart';
 import 'package:ripped/core/auth/auth_service.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/profile_mapping.dart';
 import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/notifications/reminder_service.dart';
+import 'package:ripped/core/review/review_service.dart';
 import 'package:ripped/core/sync/sync_service.dart';
 import 'package:ripped/domain/gamification/streak.dart';
 import 'package:ripped/domain/gamification/xp.dart';
@@ -28,6 +31,8 @@ final appConfigProvider = Provider<AppConfig>(
     sentryDsn: '',
     googleWebClientId: '',
     supportEmail: '',
+    posthogKey: '',
+    posthogHost: '',
   ),
 );
 
@@ -54,8 +59,36 @@ final workoutRepositoryProvider = Provider<WorkoutRepository>(
   ),
 );
 
-/// Swapped for a real provider (e.g. PostHog) when one is chosen.
-final analyticsProvider = Provider<Analytics>((ref) => const DebugAnalytics());
+/// Whether the user allows anonymous usage data (You > Data & privacy).
+final analyticsEnabledProvider = StreamProvider<bool>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchAnalyticsEnabled(),
+);
+
+/// PostHog when a key is configured, otherwise debug prints only.
+final analyticsProvider = Provider<Analytics>((ref) {
+  final config = ref.watch(appConfigProvider);
+  if (!config.hasAnalytics) return const DebugAnalytics();
+  final settings = ref.watch(settingsRepositoryProvider);
+  final client = http.Client();
+  final analytics = PostHogAnalytics(
+    apiKey: config.posthogKey,
+    host: config.posthogHost,
+    installId: settings.installId,
+    client: client,
+    appProps: {'flavor': config.flavor.name},
+  );
+  ref
+    ..listen(analyticsEnabledProvider, (_, next) {
+      analytics.enabled = next.value ?? true;
+    }, fireImmediately: true)
+    ..onDispose(client.close);
+  return analytics;
+});
+
+/// Overridden in tests with a fake.
+final reviewServiceProvider = Provider<ReviewService>(
+  (ref) => const StoreReviewService(),
+);
 
 // Reactive state.
 

@@ -11,7 +11,7 @@ This immediately deletes your account, every workout, set, plan, record and XP e
 
 ## Without the app
 
-Email [CONTACT EMAIL] from the Google account you signed in with, with the subject "Delete my Ripped account". We'll delete your account and all associated data within 30 days and confirm by email.
+Email ornobaadi.dev@gmail.com from the Google account you signed in with, with the subject "Delete my Ripped account". We'll delete your account and all associated data within 30 days and confirm by email.
 
 ## What is deleted
 

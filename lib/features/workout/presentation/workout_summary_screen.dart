@@ -13,6 +13,7 @@ import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/core/utils/format.dart';
 import 'package:ripped/core/utils/labels.dart';
+import 'package:ripped/domain/engagement/review_prompt.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
@@ -60,6 +61,28 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
     } else {
       _intro.value = 1;
     }
+  }
+
+  /// After a good session, back on Today: never mid-workout.
+  Future<void> _maybeAskForReview() async {
+    final o = widget.outcome;
+    if (o == null) return;
+    final settings = ref.read(settingsRepositoryProvider);
+    final review = ref.read(reviewServiceProvider);
+    final history = ref.read(historyProvider).value ?? const [];
+    if (history.length < ReviewPrompt.minWorkouts) return;
+    final now = DateTime.now();
+    final ask = ReviewPrompt.shouldAsk(
+      completedWorkouts: history.length,
+      positiveMoment: o.records.isNotEmpty || o.leveledUp || o.weekCompleted,
+      now: now,
+      lastAskedAt: await settings.reviewAskedAt(),
+    );
+    if (!ask) return;
+    await settings.saveReviewAskedAt(now);
+    // Let the Today screen settle before the store sheet slides up.
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    await review.request();
   }
 
   @override
@@ -321,7 +344,10 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: AppButton(
                     label: l10n.done,
-                    onPressed: () => context.go('/'),
+                    onPressed: () {
+                      unawaited(_maybeAskForReview());
+                      context.go('/');
+                    },
                   ),
                 ),
               )
