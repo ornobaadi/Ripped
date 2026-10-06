@@ -57,6 +57,7 @@ exercises:
   - id: barbell_deadlift
     source: free_exercise_db
     source_id: Barbell_Deadlift
+    video: smith-deadlift-deadlift-1
     name: Deadlift
     pattern: hinge
     priority: 85
@@ -122,6 +123,7 @@ exercises:
   - id: dumbbell_bench_press
     source: free_exercise_db
     source_id: Dumbbell_Bench_Press
+    video: dumbbell-lying-hammer-press
     name: Dumbbell bench press
     pattern: horizontal_push
     priority: 85
@@ -162,6 +164,7 @@ exercises:
   - id: barbell_row
     source: free_exercise_db
     source_id: Bent_Over_Barbell_Row
+    video: barbell-underhand-bent-over-row
     name: Barbell row
     pattern: horizontal_pull
     priority: 80
@@ -261,6 +264,7 @@ exercises:
   - id: russian_twist
     source: free_exercise_db
     source_id: Russian_Twist
+    video: seated-twist-straight-arm
     name: Russian twist
     pattern: core_rotation
     priority: 60
@@ -358,6 +362,7 @@ exercises:
   - id: smith_machine_squat
     source: free_exercise_db
     source_id: Smith_Machine_Squat
+    video: smith-chair-squat
     name: "Smith machine squat"
     pattern: squat
     priority: 60
@@ -549,6 +554,7 @@ exercises:
   - id: walking_lunge
     source: free_exercise_db
     source_id: Bodyweight_Walking_Lunge
+    video: dumbbell-lunge
     name: "Walking lunge"
     pattern: lunge
     priority: 70
@@ -559,6 +565,7 @@ exercises:
   - id: dumbbell_reverse_lunge
     source: free_exercise_db
     source_id: Dumbbell_Rear_Lunge
+    video: dumbbell-lunge
     name: "Dumbbell reverse lunge"
     pattern: lunge
     priority: 80
@@ -568,6 +575,7 @@ exercises:
   - id: dumbbell_split_squat
     source: free_exercise_db
     source_id: Split_Squat_with_Dumbbells
+    video: dumbbell-single-leg-squat
     name: "Dumbbell split squat"
     pattern: lunge
     priority: 80
@@ -666,6 +674,7 @@ exercises:
   - id: machine_chest_press
     source: free_exercise_db
     source_id: Machine_Bench_Press
+    video: lever-lying-chest-press
     name: "Machine chest press"
     pattern: horizontal_push
     priority: 75
@@ -883,6 +892,7 @@ exercises:
   - id: single_arm_cable_row
     source: free_exercise_db
     source_id: Seated_One-arm_Cable_Pulley_Rows
+    video: cable-one-arm-twisting-seated-row
     name: "Single-arm cable row"
     pattern: horizontal_pull
     priority: 65
@@ -940,6 +950,7 @@ exercises:
   - id: reverse_dumbbell_fly
     source: free_exercise_db
     source_id: Reverse_Flyes
+    video: dumbbell-incline-rear-lateral-raise
     name: "Reverse dumbbell fly"
     pattern: horizontal_pull
     priority: 60
@@ -972,6 +983,7 @@ exercises:
   - id: neutral_grip_pulldown
     source: free_exercise_db
     source_id: V-Bar_Pulldown
+    video: cable-close-grip-front-lat-pulldown
     name: "Neutral-grip pulldown"
     pattern: vertical_pull
     priority: 70
@@ -999,6 +1011,7 @@ exercises:
   - id: weighted_pull_up
     source: free_exercise_db
     source_id: Weighted_Pull_Ups
+    video: pull-up-wide-front-grip
     name: "Weighted pull-up"
     pattern: vertical_pull
     priority: 50
@@ -1050,6 +1063,7 @@ exercises:
   - id: ab_wheel_rollout
     source: free_exercise_db
     source_id: Ab_Roller
+    video: stretching-standing-wheel-rollout
     name: "Ab wheel rollout"
     pattern: core_anti_extension
     priority: 60
@@ -1160,6 +1174,7 @@ exercises:
   - id: cable_side_bend
     source: free_exercise_db
     source_id: One-Arm_High-Pulley_Cable_Side_Bends
+    video: band-side-bend
     name: "Cable side bend"
     pattern: core_rotation
     priority: 40
@@ -1235,6 +1250,7 @@ exercises:
   - id: cable_curl
     source: free_exercise_db
     source_id: Standing_Biceps_Cable_Curl
+    video: cable-one-arm-curl
     name: "Cable curl"
     pattern: isolation_arm
     priority: 65
@@ -1452,6 +1468,7 @@ exercises:
   - id: treadmill_walk
     source: free_exercise_db
     source_id: Walking_Treadmill
+    video: treadmill-running
     name: "Treadmill walk"
     pattern: conditioning
     priority: 70

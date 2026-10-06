@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -21,7 +20,7 @@ class ExerciseMotion extends StatelessWidget {
 
   /// Platform video isn't available in widget tests; the still is shown.
   @visibleForTesting
-  static bool videoEnabled = !Platform.environment.containsKey('FLUTTER_TEST');
+  static bool videoEnabled = !const bool.fromEnvironment('FLUTTER_TEST');
 
   @override
   Widget build(BuildContext context) {

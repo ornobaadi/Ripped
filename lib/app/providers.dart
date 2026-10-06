@@ -160,6 +160,16 @@ final reminderSchedulerProvider = Provider<ReminderScheduler>(
   (ref) => LocalReminderScheduler(),
 );
 
+/// Theme read from the database before the first frame (no flash).
+final initialThemeProvider = Provider<String>(
+  (ref) => SettingsRepository.defaultTheme,
+);
+
+/// "system", "light" or "dark".
+final themeProvider = StreamProvider<String>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchTheme(),
+);
+
 final remindersProvider = StreamProvider<ReminderSettings>(
   (ref) => ref.watch(settingsRepositoryProvider).watchReminders(),
 );

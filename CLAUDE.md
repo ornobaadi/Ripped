@@ -32,6 +32,9 @@ Gotchas:
 - Icons: Material Symbols Rounded (`Symbols.*_rounded`), not `Icons.*`; show state with `fill:` (0/1), not separate outlined glyphs.
 - Nav: `FloatingNavBar` floats over tab content (`extendBody`). Tab screens use `SafeArea(bottom: false)` + bottom padding `MediaQuery.paddingOf(context).bottom`. In tests tap tabs via `navTab(label)` (collapsed labels are zero-width).
 - `ExerciseMotion` (video_player, muted, `mixWithOthers`) is disabled under `FLUTTER_TEST`; tests see the poster.
+- Theme: user setting `appearance.theme` (system/light/dark, default dark) via `themeProvider`; seeded in bootstrap with `initialThemeProvider` so there's no flash. Both themes must look right; check goldens for light too.
+- Exercise videos: background is removed by flood fill from the frame edge (never a plain white colour key: it eats body highlights). 540 px, CRF 24.
+- Web (Chrome) is for quick previews only: shared code must not import `dart:io`/`dart:ffi` (use conditional imports like `catalog_open_io.dart` / `catalog_open_web.dart`). `web/sqlite3.wasm` + `web/drift_worker.js` must match the `sqlite3` / `drift` versions in pubspec.lock (download from their GitHub releases after upgrading).
 - App icon: `python tool/gen_icons.py` regenerates launcher PNGs + `store/play_icon_512.png` (placeholder mark).
 
 ## Source-of-truth docs (read before planning any work)

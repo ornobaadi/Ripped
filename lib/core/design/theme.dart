@@ -23,15 +23,18 @@ extension AppThemeContext on BuildContext {
 }
 
 abstract final class AppSystemUi {
-  /// Transparent bars with light icons for the dark-first UI.
-  static const overlay = SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
-    systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.light,
-    systemNavigationBarContrastEnforced: false,
-  );
+  /// Transparent bars with icons that contrast with the app's [theme].
+  static SystemUiOverlayStyle overlay(Brightness theme) {
+    final icons = theme == Brightness.dark ? Brightness.light : Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: icons,
+      statusBarBrightness: theme,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: icons,
+      systemNavigationBarContrastEnforced: false,
+    );
+  }
 }
 
 abstract final class AppTheme {
@@ -120,19 +123,26 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: brightness == Brightness.dark
-            ? AppSystemUi.overlay
-            : AppSystemUi.overlay.copyWith(
-                statusBarIconBrightness: Brightness.dark,
-                statusBarBrightness: Brightness.light,
-                systemNavigationBarIconBrightness: Brightness.dark,
-              ),
+        systemOverlayStyle: AppSystemUi.overlay(brightness),
       ),
       // Android predictive back: the previous page peeks as you swipe.
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
         },
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: c.surface,
+        modalBackgroundColor: c.surface,
+        surfaceTintColor: Colors.transparent,
+        dragHandleColor: c.border,
+        elevation: 8,
+        modalElevation: 8,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadii.sheet),
+          ),
+        ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: c.surface,

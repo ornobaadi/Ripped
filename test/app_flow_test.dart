@@ -8,6 +8,7 @@ import 'package:ripped/app/providers.dart';
 import 'package:ripped/app/router.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
+import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/design/components/components.dart';
 
 import 'helpers/catalog.dart';
@@ -181,6 +182,32 @@ void main() {
         await settle(tester);
       }
       // Any RenderFlex overflow above fails the test.
+      await unmount(tester);
+    });
+  });
+
+  testWidgets('theme switch applies at once and is remembered', (tester) async {
+    await tester.runAsync(() async {
+      await pumpApp(tester);
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+      await tester.tap(find.text('Looks good'));
+      await settle(tester);
+      await tester.tap(navTab('You'));
+      await settle(tester);
+
+      Brightness brightness() =>
+          Theme.of(tester.element(find.text('Appearance').first)).brightness;
+      expect(brightness(), Brightness.dark);
+
+      await tester.tap(find.text('Appearance'));
+      await settle(tester);
+      await tester.tap(find.text('Light'));
+      await settle(tester);
+      expect(brightness(), Brightness.light);
+      expect(await SettingsRepository(db).theme(), 'light');
       await unmount(tester);
     });
   });

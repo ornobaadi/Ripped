@@ -73,4 +73,19 @@ void main() {
       expect((await repo.reminders()).enabled, isFalse);
     });
   });
+
+  group('theme setting', () {
+    late AppDatabase db;
+    setUp(() => db = AppDatabase(DatabaseConnection(NativeDatabase.memory())));
+    tearDown(() => db.close());
+
+    test('dark by default, round-trips, ignores junk', () async {
+      final repo = SettingsRepository(db);
+      expect(await repo.theme(), 'dark');
+      await repo.saveTheme('system');
+      expect(await repo.theme(), 'system');
+      await repo.saveTheme('purple');
+      expect(await repo.theme(), 'dark');
+    });
+  });
 }

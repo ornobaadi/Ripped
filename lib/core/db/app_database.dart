@@ -25,7 +25,17 @@ part 'app_database.g.dart';
 )
 class AppDatabase extends _$AppDatabase {
   new([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: 'ripped'));
+    : super(
+        executor ??
+            driftDatabase(
+              name: 'ripped',
+              // Only used when trying the app in a browser.
+              web: DriftWebOptions(
+                sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+                driftWorker: Uri.parse('drift_worker.js'),
+              ),
+            ),
+      );
 
   /// Bump with every schema change, add a step in [migration], and run
   /// `dart run drift_dev make-migrations` to snapshot + test it.

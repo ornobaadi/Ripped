@@ -106,3 +106,10 @@ Listed under Phase 3 but they only matter for Pro (Phase 7) and need accounts th
 - **Decision:** M3 Expressive floating pill nav (selected tab expands with a spring, others collapse to icons); Material Symbols Rounded app-wide.
   **Why:** Owner request; fill axis gives selected/unselected state from one glyph.
 
+## 2026-10-06 — Theme switch; video background removal
+
+- **Decision:** Appearance setting (Match phone / Light / Dark), default Dark, stored in the local `settings` table (per device, not synced).
+  **Why:** Owner request; light theme existed but was unreachable.
+- **Decision:** Exercise videos: remove only edge-connected white (flood fill) plus large enclosed pure-white areas; 540 px, CRF 24.
+  **Why:** A white colour key cut holes in the figure's highlights. **Alternatives:** ML matting (heavy), keeping the white tile (clashes with dark UI).
+

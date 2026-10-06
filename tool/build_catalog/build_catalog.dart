@@ -25,7 +25,7 @@ const maxImageSize = 720;
 
 /// Demo videos: square, muted, looping, baked onto the media tile colour of
 /// each theme (AppColors.surfaceRaised) so they sit flush in the UI.
-const videoSize = 360;
+const videoSize = 540;
 const videoBackgrounds = {'dark': '0x202328', 'light': '0xF2F2F0'};
 
 Future<void> main() async {
@@ -350,14 +350,26 @@ Future<void> _writeVideo(
   final (x, y, side) = crop;
   // Pad generously with white so a crop near the edge never fails.
   final pad = side;
-  final frame =
-      'pad=iw+${2 * pad}:ih+${2 * pad}:$pad:$pad:white,'
-      'crop=$side:$side:${x + pad}:${y + pad},'
-      'scale=$videoSize:$videoSize:flags=lanczos,'
-      'colorkey=0xFFFFFF:0.05:0.10';
+  // Only white that is really background goes: white connected to the
+  // frame edge (flood fill), plus large pure-white areas trapped inside
+  // machine frames. A plain colour key also ate the white highlights on the
+  // body. The mask is feathered so edges stay smooth.
+  const p = videoSize;
+  final erode = 'erosion,' * 10;
+  final dilate = 'dilation,' * 11;
   final graph =
-      'color=$background:s=${videoSize}x$videoSize[bg];'
-      '[0:v]fps=24,$frame[fg];[bg][fg]overlay=shortest=1,format=yuv420p';
+      '[0:v]fps=24,pad=iw+${2 * pad}:ih+${2 * pad}:$pad:$pad:white,'
+      'crop=$side:$side:${x + pad}:${y + pad},'
+      'scale=$p:$p:flags=lanczos,pad=iw+8:ih+8:4:4:white,format=gbrp,'
+      'split=4[src][m1][m2][b0];'
+      "[m1]format=gray,lut=y='if(gte(val,243),255,0)',"
+      "floodfill=x=0:y=0:s0=255:d0=128,lut=y='if(eq(val,128),255,0)'[flood];"
+      "[m2]format=gray,lut=y='if(gte(val,253),255,0)',"
+      '$erode${dilate}null[holes];'
+      '[flood][holes]blend=all_mode=lighten,dilation,gblur=sigma=0.8,'
+      'format=gbrp[a];'
+      '[b0]drawbox=color=$background:t=fill,format=gbrp[bg];'
+      '[src][bg][a]maskedmerge,crop=$p:$p:4:4,format=yuv420p';
   Future<void> run(List<String> args) async {
     final r = await Process.run('ffmpeg', [
       '-y',
@@ -383,7 +395,7 @@ Future<void> _writeVideo(
     '-preset',
     'slow',
     '-crf',
-    '30',
+    '24',
     '-profile:v',
     'main',
     '-movflags',
@@ -393,6 +405,8 @@ Future<void> _writeVideo(
   await run([
     '-i',
     out.path,
+    '-vf',
+    'scale=240:240:flags=lanczos',
     '-frames:v',
     '1',
     '-map_metadata',

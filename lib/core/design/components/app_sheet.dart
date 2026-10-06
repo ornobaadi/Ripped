@@ -9,17 +9,14 @@ Future<T?> showAppSheet<T>(
   required WidgetBuilder builder,
   bool scrollable = false,
 }) {
-  final c = context.colors;
+  // Colours and shape come from the theme (bottomSheetTheme), so an open
+  // sheet follows a theme change. Root navigator: above the floating nav bar.
   return showModalBottomSheet<T>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    backgroundColor: c.surface,
-    elevation: 8,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.sheet)),
-    ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
         left: AppSpacing.lg,

@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:ripped/core/db/app_database.dart';
 
 /// Typed device preferences on top of the key/value `settings` table.
@@ -23,6 +24,27 @@ class SettingsRepository {
 
   static const _remindersOn = 'reminders.enabled';
   static const _reminderTime = 'reminders.time';
+  static const _theme = 'appearance.theme';
+
+  /// "system", "light" or "dark". Dark until the user picks (design.md 5.1).
+  static const defaultTheme = 'dark';
+  static const themes = {'system', 'light', 'dark'};
+
+  Stream<String> watchTheme() => _themeQuery.watchSingleOrNull().map(_theme_);
+
+  Future<String> theme() async => _theme_(await _themeQuery.getSingleOrNull());
+
+  Future<void> saveTheme(String theme) => _db
+      .into(_db.settings)
+      .insertOnConflictUpdate(
+        SettingsCompanion.insert(key: _theme, value: theme),
+      );
+
+  SimpleSelectStatement<$SettingsTable, Setting> get _themeQuery =>
+      _db.select(_db.settings)..where((s) => s.key.equals(_theme));
+
+  static String _theme_(Setting? row) =>
+      themes.contains(row?.value) ? row!.value : defaultTheme;
 
   Stream<ReminderSettings> watchReminders() =>
       _db.select(_db.settings).watch().map(_parse);

@@ -38,6 +38,8 @@ class YouScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final text = Theme.of(context).textTheme;
     final units = ref.watch(unitsProvider);
+    final theme =
+        ref.watch(themeProvider).value ?? ref.watch(initialThemeProvider);
 
     return Scaffold(
       // Scrolls behind the floating nav bar; the bottom inset clears it.
@@ -79,6 +81,23 @@ class YouScreen extends ConsumerWidget {
                 onSelectionChanged: (s) => unawaited(
                   ref.read(programRepositoryProvider).setUnits(s.first),
                 ),
+              ),
+            ),
+            AppListTile(
+              icon: Symbols.contrast_rounded,
+              title: l10n.appearance,
+              subtitle: switch (theme) {
+                'system' => l10n.themeSystem,
+                'light' => l10n.themeLight,
+                _ => l10n.themeDark,
+              },
+              trailing: Icon(
+                Symbols.chevron_right_rounded,
+                color: context.colors.textSecondary,
+              ),
+              onTap: () => showAppSheet<void>(
+                context,
+                builder: (context) => const _ThemeSheet(),
               ),
             ),
             SectionHeader(l10n.sectionReminders),
@@ -123,6 +142,43 @@ class YouScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// System / Light / Dark. Applies immediately; the sheet stays open so the
+/// change can be seen.
+class _ThemeSheet extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final current =
+        ref.watch(themeProvider).value ?? ref.watch(initialThemeProvider);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.appearance, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppSpacing.lg),
+        for (final (value, title, subtitle) in [
+          ('system', l10n.themeSystem, l10n.themeSystemSub),
+          ('light', l10n.themeLight, null),
+          ('dark', l10n.themeDark, null),
+        ])
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: ChoiceCard(
+              title: title,
+              subtitle: subtitle,
+              selected: current == value,
+              onTap: () => unawaited(
+                ref.read(settingsRepositoryProvider).saveTheme(value),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

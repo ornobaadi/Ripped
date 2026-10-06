@@ -534,6 +534,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get units => 'Units';
 
   @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get themeSystem => 'Match phone';
+
+  @override
+  String get themeSystemSub => 'Follows your phone\'s light or dark setting';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
   String get unitsMetric => 'Kilograms';
 
   @override

@@ -11,7 +11,7 @@ import 'package:ripped/app/router.dart';
 import 'package:ripped/core/auth/auth_service.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
-import 'package:ripped/core/design/theme.dart';
+import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/sync/supabase_sync_remote.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
@@ -24,14 +24,14 @@ Future<void> bootstrap(AppFlavor flavor) async {
 
   // Draw behind transparent system bars; phone layouts are portrait-only.
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(AppSystemUi.overlay);
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // Local data first: the catalog and the user's DB, in parallel.
   final db = AppDatabase();
-  final (catalog, profile) = await (
+  final (catalog, profile, theme) = await (
     CatalogRepository.load(),
     db.select(db.profiles).get(),
+    SettingsRepository(db).theme(),
   ).wait;
   final onboarded = profile.any((p) => p.onboardingDoneAt != null);
   // Not awaited: sign-in and backup come online in the background.
@@ -43,6 +43,7 @@ Future<void> bootstrap(AppFlavor flavor) async {
       databaseProvider.overrideWithValue(db),
       catalogProvider.overrideWithValue(catalog),
       initialOnboardedProvider.overrideWithValue(onboarded),
+      initialThemeProvider.overrideWithValue(theme),
       backendProvider.overrideWith((ref) => backend),
     ],
     child: const RippedApp(),

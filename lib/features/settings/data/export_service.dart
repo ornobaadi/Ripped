@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:share_plus/share_plus.dart';
@@ -79,17 +77,20 @@ class ExportService {
 
   /// Writes both files and opens the share sheet.
   Future<void> share() async {
-    final dir = await getTemporaryDirectory();
     final stamp = DateTime.now().toIso8601String().substring(0, 10);
-    final json = File('${dir.path}/ripped-export-$stamp.json');
-    final csv = File('${dir.path}/ripped-sets-$stamp.csv');
-    await json.writeAsString(
-      const JsonEncoder.withIndent('  ').convert(await buildJson()),
-    );
-    await csv.writeAsString(await buildSetsCsv());
+    final json = const JsonEncoder.withIndent('  ').convert(await buildJson());
+    final csv = await buildSetsCsv();
+    // From memory, so it also works where there is no file system (web).
     await SharePlus.instance.share(
       ShareParams(
-        files: [XFile(json.path), XFile(csv.path)],
+        files: [
+          XFile.fromData(utf8.encode(json), mimeType: 'application/json'),
+          XFile.fromData(utf8.encode(csv), mimeType: 'text/csv'),
+        ],
+        fileNameOverrides: [
+          'ripped-export-$stamp.json',
+          'ripped-sets-$stamp.csv',
+        ],
         subject: 'Ripped data export',
       ),
     );

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ripped/app/providers.dart';
 import 'package:ripped/app/router.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/sync/sync_controller.dart';
@@ -43,8 +45,14 @@ class _RippedAppState extends ConsumerState<RippedApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      // Dark is the default (design.md 5.1). Follow system once settings land.
-      themeMode: ThemeMode.dark,
+      // Dark by default (design.md 5.1); changed in You > Appearance.
+      themeMode: ThemeMode.values.byName(
+        ref.watch(themeProvider).value ?? ref.watch(initialThemeProvider),
+      ),
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: AppSystemUi.overlay(Theme.of(context).brightness),
+        child: child!,
+      ),
       routerConfig: ref.watch(routerProvider),
     );
   }
