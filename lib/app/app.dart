@@ -8,6 +8,7 @@ import 'package:ripped/app/router.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/analytics/posthog_analytics.dart';
 import 'package:ripped/core/design/theme.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 import 'package:ripped/core/sync/sync_controller.dart';
 import 'package:ripped/l10n/l10n.dart';
 
@@ -38,8 +39,12 @@ class _RippedAppState extends ConsumerState<RippedApp> {
     if (analytics is PostHogAnalytics) unawaited(analytics.flush());
   }
 
-  void _sync() =>
-      unawaited(ref.read(syncControllerProvider.notifier).requestSync());
+  void _sync() {
+    unawaited(ref.read(syncControllerProvider.notifier).requestSync());
+    // Notifications are rebuilt from today's facts each time the app is
+    // opened, so they never go stale.
+    unawaited(refreshNotifications(ref.container));
+  }
 
   @override
   void dispose() {
@@ -49,6 +54,10 @@ class _RippedAppState extends ConsumerState<RippedApp> {
 
   @override
   Widget build(BuildContext context) {
+    // One switch for every vibration in the app.
+    ref.listen(hapticsEnabledProvider, (_, next) {
+      Haptics.enabled = next.value ?? true;
+    });
     return MaterialApp.router(
       onGenerateTitle: (context) => context.l10n.appTitle,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

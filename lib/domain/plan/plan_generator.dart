@@ -1,6 +1,7 @@
 import 'package:ripped/domain/catalog/exercise.dart';
 import 'package:ripped/domain/plan/plan.dart';
 import 'package:ripped/domain/plan/profile.dart';
+import 'package:ripped/domain/plan/training_style.dart';
 
 /// One position in a day template: a movement pattern, optionally narrowed
 /// to a primary muscle (e.g. arm isolation for triceps).
@@ -113,8 +114,12 @@ class PlanGenerator {
     Slot(MovementPattern.coreAntiExtension),
   ]);
 
-  GeneratedPlan generate(TrainingProfile profile) {
-    final (split, templates) = _templatesFor(profile.daysPerWeek);
+  /// [style] `auto` keeps the coach's default for the number of days.
+  GeneratedPlan generate(
+    TrainingProfile profile, {
+    TrainingStyle style = TrainingStyle.auto,
+  }) {
+    final (split, templates) = _templatesForStyle(style, profile.daysPerWeek);
     final slotCount = slotsForMinutes(profile.sessionMinutes);
     final usedThisWeek = <String>{};
 
@@ -164,6 +169,228 @@ class PlanGenerator {
     });
   }
 
+  /// The day names a style produces, for previews ("Chest", "Back", ...).
+  static List<String> dayNames(TrainingStyle style, int days) => [
+    for (final t in _templatesForStyle(style, days).$2) t.name,
+  ];
+
+  /// Styles to offer for [days] a week: the coach's pick (`auto`) first,
+  /// then every other style that fits and gives a different week.
+  static List<TrainingStyle> styleOptions(int days) {
+    final pick = dayNames(TrainingStyle.auto, days).join('|');
+    return [
+      TrainingStyle.auto,
+      for (final s in TrainingStyle.values)
+        if (s != TrainingStyle.auto &&
+            s.fits(days) &&
+            dayNames(s, days).join('|') != pick)
+          s,
+    ];
+  }
+
+  /// One day built around the chosen body parts, e.g. chest + shoulders.
+  /// [avoid] holds exercises already used on other days, so the week stays
+  /// varied where the catalog allows.
+  PlanDay buildDay(
+    Set<BodyPart> parts,
+    TrainingProfile profile, {
+    Set<String> avoid = const {},
+  }) {
+    final ordered = [
+      for (final p in BodyPart.values)
+        if (parts.contains(p)) p,
+    ];
+    final template = _partsDay(ordered.isEmpty ? BodyPart.values : ordered);
+    final slotCount = slotsForMinutes(profile.sessionMinutes);
+    return PlanDay(
+      name: template.name,
+      exercises: _fillDay(
+        _slotsFor(template, slotCount, profile.goal),
+        [...template.slots.skip(slotCount), ..._backfill],
+        slotCount,
+        profile,
+        {...avoid},
+      ),
+    );
+  }
+
+  static String partName(BodyPart p) => switch (p) {
+    BodyPart.chest => 'Chest',
+    BodyPart.back => 'Back',
+    BodyPart.shoulders => 'Shoulders',
+    BodyPart.arms => 'Arms',
+    BodyPart.legs => 'Legs',
+    BodyPart.core => 'Core',
+  };
+
+  /// Each part's work in order of importance, with a short tail of
+  /// supporting work so a single-part day is still a full session.
+  static List<Slot> _partSlots(BodyPart p) => switch (p) {
+    BodyPart.chest => const [
+      Slot(MovementPattern.horizontalPush),
+      Slot(MovementPattern.horizontalPush),
+      Slot(MovementPattern.horizontalPush),
+      Slot(MovementPattern.isolationArm, 'triceps'),
+      Slot(MovementPattern.horizontalPush),
+      Slot(MovementPattern.coreAntiExtension),
+      Slot(MovementPattern.isolationArm, 'triceps'),
+    ],
+    BodyPart.back => const [
+      Slot(MovementPattern.verticalPull),
+      Slot(MovementPattern.horizontalPull),
+      Slot(MovementPattern.verticalPull),
+      Slot(MovementPattern.horizontalPull),
+      Slot(MovementPattern.isolationArm, 'biceps'),
+      Slot(MovementPattern.coreRotation),
+      Slot(MovementPattern.isolationArm, 'biceps'),
+    ],
+    BodyPart.shoulders => const [
+      Slot(MovementPattern.verticalPush),
+      Slot(MovementPattern.isolationArm, 'shoulders'),
+      Slot(MovementPattern.horizontalPull, 'shoulders'),
+      Slot(MovementPattern.verticalPush),
+      Slot(MovementPattern.isolationArm, 'shoulders'),
+      Slot(MovementPattern.coreAntiExtension),
+      Slot(MovementPattern.isolationArm, 'triceps'),
+    ],
+    BodyPart.arms => const [
+      Slot(MovementPattern.isolationArm, 'biceps'),
+      Slot(MovementPattern.isolationArm, 'triceps'),
+      Slot(MovementPattern.isolationArm, 'biceps'),
+      Slot(MovementPattern.isolationArm, 'triceps'),
+      Slot(MovementPattern.isolationArm, 'forearms'),
+      Slot(MovementPattern.isolationArm, 'biceps'),
+      Slot(MovementPattern.isolationArm, 'triceps'),
+    ],
+    BodyPart.legs => _legs.slots,
+    BodyPart.core => const [
+      Slot(MovementPattern.coreAntiExtension),
+      Slot(MovementPattern.coreRotation),
+      Slot(MovementPattern.coreAntiExtension),
+      Slot(MovementPattern.coreRotation),
+      Slot(MovementPattern.carry),
+      Slot(MovementPattern.coreAntiExtension),
+      Slot(MovementPattern.coreRotation),
+    ],
+  };
+
+  /// Takes turns between the parts so each gets its key lifts first.
+  static _DayTemplate _partsDay(List<BodyPart> parts, [String? name]) {
+    final lists = [for (final p in parts) _partSlots(p)];
+    final slots = <Slot>[];
+    for (var i = 0; i < 7; i++) {
+      for (final l in lists) {
+        if (i < l.length) slots.add(l[i]);
+      }
+    }
+    return _DayTemplate(name ?? parts.map(partName).join(' & '), slots);
+  }
+
+  static const BodyPart _c = BodyPart.chest;
+  static const BodyPart _b = BodyPart.back;
+  static const BodyPart _s = BodyPart.shoulders;
+  static const BodyPart _a = BodyPart.arms;
+  static const BodyPart _l = BodyPart.legs;
+  static const BodyPart _k = BodyPart.core;
+
+  static (SplitType, List<_DayTemplate>) _templatesForStyle(
+    TrainingStyle style,
+    int days,
+  ) {
+    final d = days.clamp(2, 6);
+    // A style that doesn't fit the day count falls back to the default.
+    final s = style.fits(d) ? style : TrainingStyle.auto;
+    switch (s) {
+      case TrainingStyle.auto:
+        return _templatesFor(d);
+      case TrainingStyle.fullBody:
+        const cycle = [_fullBodyA, _fullBodyB, _fullBodyC];
+        return (
+          SplitType.fullBody,
+          [
+            for (var i = 0; i < d; i++)
+              if (i < 3)
+                cycle[i]
+              else
+                _DayTemplate('Full Body ${'ABCDEF'[i]}', cycle[i % 3].slots),
+          ],
+        );
+      case TrainingStyle.upperLower:
+        const letters = 'ABC';
+        final uppers = (d / 2).ceil();
+        final lowers = d ~/ 2;
+        return (
+          SplitType.upperLower,
+          [
+            for (var i = 0; i < d; i++)
+              if (i.isEven)
+                _DayTemplate(
+                  uppers == 1 ? 'Upper' : 'Upper ${letters[i ~/ 2]}',
+                  _upperSlots,
+                )
+              else
+                _DayTemplate(
+                  lowers == 1 ? 'Lower' : 'Lower ${letters[i ~/ 2]}',
+                  _lowerSlots,
+                ),
+          ],
+        );
+      case TrainingStyle.pushPullLegs:
+        return (
+          SplitType.pushPullLegs,
+          switch (d) {
+            3 => const [_push, _pull, _legs],
+            4 => const [
+              _push,
+              _pull,
+              _legs,
+              _DayTemplate('Upper', _upperSlots),
+            ],
+            5 => const [
+              _push,
+              _pull,
+              _legs,
+              _DayTemplate('Upper', _upperSlots),
+              _DayTemplate('Lower', _lowerSlots),
+            ],
+            _ => _templatesFor(6).$2,
+          },
+        );
+      case TrainingStyle.bodyPart:
+        return (
+          SplitType.bodyPart,
+          switch (d) {
+            3 => [
+              _partsDay(const [_c, _b]),
+              _partsDay(const [_l, _k]),
+              _partsDay(const [_s, _a]),
+            ],
+            4 => [
+              _partsDay(const [_c, _s]),
+              _partsDay(const [_b]),
+              _partsDay(const [_l]),
+              _partsDay(const [_a, _k]),
+            ],
+            5 => [
+              _partsDay(const [_c]),
+              _partsDay(const [_b]),
+              _partsDay(const [_l]),
+              _partsDay(const [_s]),
+              _partsDay(const [_a]),
+            ],
+            _ => [
+              _partsDay(const [_c]),
+              _partsDay(const [_b]),
+              _partsDay(const [_l]),
+              _partsDay(const [_s]),
+              _partsDay(const [_a]),
+              _partsDay(const [_l, _k], 'Legs & Core B'),
+            ],
+          },
+        );
+    }
+  }
+
   static int slotsForMinutes(int minutes) => switch (minutes) {
     <= 20 => 4,
     <= 30 => 5,
@@ -171,40 +398,41 @@ class PlanGenerator {
     _ => 7,
   };
 
-  (SplitType, List<_DayTemplate>) _templatesFor(int days) => switch (days) {
-    2 => (SplitType.fullBody, [_fullBodyA, _fullBodyB]),
-    3 => (SplitType.fullBody, [_fullBodyA, _fullBodyB, _fullBodyC]),
-    4 => (
-      SplitType.upperLower,
-      const [
-        _DayTemplate('Upper A', _upperSlots),
-        _DayTemplate('Lower A', _lowerSlots),
-        _DayTemplate('Upper B', _upperSlots),
-        _DayTemplate('Lower B', _lowerSlots),
-      ],
-    ),
-    5 => (
-      SplitType.upperLowerPpl,
-      const [
-        _DayTemplate('Upper', _upperSlots),
-        _DayTemplate('Lower', _lowerSlots),
-        _push,
-        _pull,
-        _legs,
-      ],
-    ),
-    _ => (
-      SplitType.pushPullLegs,
-      const [
-        _push,
-        _pull,
-        _legs,
-        _DayTemplate('Push B', _pushSlotsB),
-        _DayTemplate('Pull B', _pullSlotsB),
-        _DayTemplate('Legs B', _legsSlotsB),
-      ],
-    ),
-  };
+  static (SplitType, List<_DayTemplate>) _templatesFor(int days) =>
+      switch (days) {
+        2 => (SplitType.fullBody, [_fullBodyA, _fullBodyB]),
+        3 => (SplitType.fullBody, [_fullBodyA, _fullBodyB, _fullBodyC]),
+        4 => (
+          SplitType.upperLower,
+          const [
+            _DayTemplate('Upper A', _upperSlots),
+            _DayTemplate('Lower A', _lowerSlots),
+            _DayTemplate('Upper B', _upperSlots),
+            _DayTemplate('Lower B', _lowerSlots),
+          ],
+        ),
+        5 => (
+          SplitType.upperLowerPpl,
+          const [
+            _DayTemplate('Upper', _upperSlots),
+            _DayTemplate('Lower', _lowerSlots),
+            _push,
+            _pull,
+            _legs,
+          ],
+        ),
+        _ => (
+          SplitType.pushPullLegs,
+          const [
+            _push,
+            _pull,
+            _legs,
+            _DayTemplate('Push B', _pushSlotsB),
+            _DayTemplate('Pull B', _pullSlotsB),
+            _DayTemplate('Legs B', _legsSlotsB),
+          ],
+        ),
+      };
 
   static const _pushSlotsB = [
     Slot(MovementPattern.verticalPush),
@@ -487,5 +715,6 @@ class PlanGenerator {
     SplitType.upperLower => 'Upper / Lower · $days days',
     SplitType.upperLowerPpl => 'Upper / Lower + PPL · $days days',
     SplitType.pushPullLegs => 'Push / Pull / Legs · $days days',
+    SplitType.bodyPart => 'Body Part Split · $days days',
   };
 }

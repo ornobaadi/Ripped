@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -11,11 +10,14 @@ import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/components/confetti.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 import 'package:ripped/core/utils/format.dart';
 import 'package:ripped/core/utils/labels.dart';
 import 'package:ripped/domain/engagement/review_prompt.dart';
+import 'package:ripped/domain/insights/achievements.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
+import 'package:ripped/features/progress/presentation/achievement_tile.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
 import 'package:ripped/l10n/l10n.dart';
 
@@ -53,14 +55,34 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
     if (widget.justFinished) {
       final o = widget.outcome;
       final big = o != null && (o.records.isNotEmpty || o.leveledUp);
-      // Haptics map (design.md 5.6): heavy for PRs and level-ups.
-      unawaited(
-        big ? HapticFeedback.heavyImpact() : HapticFeedback.mediumImpact(),
-      );
+      // A long, strong buzz says "saved, you're done" without a glance;
+      // records and level-ups get the celebration pattern instead.
+      Haptics.play(big ? HapticCue.celebrate : HapticCue.workoutDone);
       _intro.forward();
     } else {
       _intro.value = 1;
     }
+  }
+
+  /// Badges this workout tipped over the line: today's stats against the
+  /// same stats without this session.
+  List<Achievement> _newBadges(WorkoutOutcome o) {
+    final sessions = ref.watch(sessionsProvider).value;
+    if (sessions == null) return const [];
+    final after = ref.watch(achievementStatsProvider);
+    final streakGrew = o.streakAfter > o.streakBefore;
+    final before = AchievementStats.fromSessions(
+      [
+        for (final s in sessions)
+          if (s.id != widget.workoutId) s,
+      ],
+      records: after.records - o.records.length,
+      level: o.levelBefore.level,
+      bestStreakWeeks: streakGrew && after.bestStreakWeeks == o.streakAfter
+          ? o.streakBefore
+          : after.bestStreakWeeks,
+    );
+    return Achievements.newlyEarned(before, after);
   }
 
   /// After a good session, back on Today: never mid-workout.
@@ -232,8 +254,36 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
 
     final outcome = widget.outcome;
     final results = outcome?.progression;
+    final badges = outcome != null && widget.justFinished
+        ? _newBadges(outcome)
+        : const <Achievement>[];
+    // Confetti for the moments worth it: a record, a level, a finished
+    // week or a new badge.
     final celebrate =
-        outcome != null && (outcome.records.isNotEmpty || outcome.leveledUp);
+        outcome != null &&
+        (outcome.records.isNotEmpty ||
+            outcome.leveledUp ||
+            outcome.weekCompleted ||
+            badges.isNotEmpty);
+    final total = ref.watch(sessionsProvider).value?.length ?? 0;
+    final week = ref.watch(weeklyRecapProvider).workouts;
+    final target = ref.watch(profileProvider).daysPerWeek;
+    // One personal line under the title, picked by what just happened.
+    final praise = outcome == null
+        ? null
+        : outcome.records.isNotEmpty
+        ? l10n.praiseRecords(outcome.records.length)
+        : outcome.leveledUp
+        ? l10n.praiseLevel(outcome.levelAfter.level)
+        : outcome.weekCompleted
+        ? l10n.praiseWeek(target)
+        : outcome.comeback
+        ? l10n.praiseComeback
+        : total <= 1
+        ? l10n.praiseFirst
+        : week < target
+        ? l10n.praiseProgress(total, target - week)
+        : l10n.praiseCount(total);
     return PopScope(
       canPop: !widget.justFinished,
       onPopInvokedWithResult: (didPop, _) {
@@ -271,6 +321,16 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
                               l10n.workoutCompleteTitle,
                               style: text.titleLarge,
                             ),
+                            if (praise != null) ...[
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                praise,
+                                style: text.bodyLarge?.copyWith(
+                                  color: c.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                            ],
                           ] else
                             Text(
                               DateFormat.yMMMEd().format(w.startedAt),
@@ -311,6 +371,23 @@ class _WorkoutSummaryScreenState extends ConsumerState<WorkoutSummaryScreen>
                       ),
                     ),
                     if (outcome != null) ..._celebration(outcome, units),
+                    if (badges.isNotEmpty) ...[
+                      _reveal(5, SectionHeader(l10n.achievementUnlocked)),
+                      _reveal(
+                        5,
+                        AppCard(
+                          child: Column(
+                            children: [
+                              for (final badge in badges)
+                                AchievementTile(
+                                  achievement: badge,
+                                  stats: ref.watch(achievementStatsProvider),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     if (results != null && results.isNotEmpty) ...[
                       _reveal(6, SectionHeader(l10n.nextTimeTitle)),
                       _reveal(

@@ -3,6 +3,8 @@ import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/domain/gamification/streak.dart';
 import 'package:ripped/domain/gamification/xp.dart';
+import 'package:ripped/domain/insights/recovery_advisor.dart';
+import 'package:ripped/domain/insights/session_log.dart';
 import 'package:ripped/domain/plan/plan.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/domain/plan/schedule.dart';
@@ -22,38 +24,44 @@ class WorkoutRepository {
 
   // ---------------------------------------------------------------- start
 
-  Future<String> startWorkout(ProgramDayView day, {Units units = Units.kg}) =>
-      _db.transaction(() async {
-        final workout = await _db
-            .into(_db.workouts)
-            .insertReturning(
-              WorkoutsCompanion.insert(
-                programDayId: Value(day.id),
-                dayIndex: Value(day.index),
-                name: day.name,
-                startedAt: DateTime.now(),
-                status: WorkoutStatus.inProgress,
-              ),
-            );
-        for (final (i, e) in day.exercises.indexed) {
-          await _insertExercise(
-            workout.id,
-            e.exerciseId,
-            i,
-            e.prescription,
-            units,
-          );
-        }
-        return workout.id;
-      });
+  /// [easyWeek]: lighter weights and a set fewer (RecoveryAdvisor).
+  Future<String> startWorkout(
+    ProgramDayView day, {
+    Units units = Units.kg,
+    bool easyWeek = false,
+  }) => _db.transaction(() async {
+    final workout = await _db
+        .into(_db.workouts)
+        .insertReturning(
+          WorkoutsCompanion.insert(
+            programDayId: Value(day.id),
+            dayIndex: Value(day.index),
+            name: day.name,
+            startedAt: DateTime.now(),
+            status: WorkoutStatus.inProgress,
+          ),
+        );
+    for (final (i, e) in day.exercises.indexed) {
+      await _insertExercise(
+        workout.id,
+        e.exerciseId,
+        i,
+        e.prescription,
+        units,
+        easyWeek: easyWeek,
+      );
+    }
+    return workout.id;
+  });
 
   Future<void> _insertExercise(
     String workoutId,
     String exerciseId,
     int order,
     Prescription p,
-    Units units,
-  ) async {
+    Units units, {
+    bool easyWeek = false,
+  }) async {
     final we = await _db
         .into(_db.workoutExercises)
         .insertReturning(
@@ -66,7 +74,7 @@ class WorkoutRepository {
             restSeconds: p.restSeconds,
           ),
         );
-    await _insertSets(we.id, exerciseId, p, units);
+    await _insertSets(we.id, exerciseId, p, units, easyWeek: easyWeek);
   }
 
   /// Pre-fills sets from progression memory, or a light starting weight
@@ -75,19 +83,27 @@ class WorkoutRepository {
     String workoutExerciseId,
     String exerciseId,
     Prescription p,
-    Units units,
-  ) async {
+    Units units, {
+    bool easyWeek = false,
+  }) async {
     final state = await _state(exerciseId);
     final exercise = _catalog.byId(exerciseId);
-    final weight = exercise.isWeighted
+    final normal = exercise.isWeighted
         ? state?.currentWeightKg ??
               LoadIncrements.startingWeightKg(exercise, units)
         : null;
+    final weight = easyWeek
+        ? RecoveryAdvisor.easyWeight(
+            normal,
+            LoadIncrements.forExercise(exercise, units),
+          )
+        : normal;
+    final sets = easyWeek ? RecoveryAdvisor.easySets(p.sets) : p.sets;
     final reps = (state?.currentRepTarget ?? p.repMin).clamp(
       p.repMin,
       p.repMax,
     );
-    for (var s = 0; s < p.sets; s++) {
+    for (var s = 0; s < sets; s++) {
       await _db
           .into(_db.workoutSets)
           .insert(
@@ -476,6 +492,7 @@ class WorkoutRepository {
     required Units units,
     Feeling? feeling,
     int weeklyTarget = 3,
+    bool easyWeek = false,
   }) => _db.transaction(() async {
     final view = await workout(workoutId);
     if (view == null) return WorkoutOutcome.empty;
@@ -531,7 +548,10 @@ class WorkoutRepository {
         incrementKg: LoadIncrements.forExercise(exercise, units),
         feeling: feeling,
       );
-      await _saveState(e.exerciseId, outcome, previous?.id, now);
+      // An easy week is a pause: next week resumes from where it was.
+      if (!easyWeek || previous == null) {
+        await _saveState(e.exerciseId, outcome, previous?.id, now);
+      }
       progression.add(
         ProgressionResult(
           exerciseId: e.exerciseId,
@@ -725,6 +745,54 @@ class WorkoutRepository {
   }
 
   // ---------------------------------------------------------------- stats
+
+  /// Every completed workout with its logged sets, oldest first.
+  Stream<List<SessionLog>> watchSessions() => _db
+      .customSelect(
+        '''
+        SELECT w.id AS id, w.started_at AS started_at,
+          w.duration_s AS duration_s, w.feeling AS feeling,
+          e.exercise_id AS exercise_id, s.weight_kg AS weight_kg,
+          s.reps AS reps
+        FROM workouts w
+        LEFT JOIN workout_exercises e
+          ON e.workout_id = w.id AND e.skipped = 0
+        LEFT JOIN workout_sets s
+          ON s.workout_exercise_id = e.id AND s.completed_at IS NOT NULL
+            AND s.deleted_at IS NULL
+        WHERE w.status = 'completed' AND w.deleted_at IS NULL
+        ORDER BY w.started_at, e.sort_order, s.set_index
+        ''',
+        readsFrom: {_db.workouts, _db.workoutExercises, _db.workoutSets},
+      )
+      .watch()
+      .map((rows) {
+        final sessions = <String, SessionLog>{};
+        for (final r in rows) {
+          final id = r.read<String>('id');
+          final feeling = r.read<String?>('feeling');
+          final session = sessions[id] ??= SessionLog(
+            id: id,
+            startedAt: r.read<DateTime>('started_at'),
+            duration: Duration(seconds: r.read<int?>('duration_s') ?? 0),
+            feeling: feeling == null
+                ? null
+                : Feeling.values.asNameMap()[feeling],
+            sets: [],
+          );
+          final reps = r.read<int?>('reps');
+          if (reps != null) {
+            session.sets.add(
+              SetLog(
+                exerciseId: r.read<String>('exercise_id'),
+                reps: reps,
+                weightKg: r.read<double?>('weight_kg'),
+              ),
+            );
+          }
+        }
+        return sessions.values.toList();
+      });
 
   Stream<int> watchTotalXp() {
     final sum = _db.xpEvents.amount.sum();

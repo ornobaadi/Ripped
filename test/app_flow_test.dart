@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +10,8 @@ import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/design/components/components.dart';
+import 'package:ripped/features/onboarding/presentation/plan_building_view.dart';
+import 'package:ripped/features/plan/data/program_repository.dart';
 
 import 'helpers/catalog.dart';
 
@@ -35,6 +37,7 @@ void main() {
           databaseProvider.overrideWithValue(db),
           catalogProvider.overrideWithValue(CatalogRepository(realCatalog())),
           initialOnboardedProvider.overrideWithValue(onboarded),
+          planBuildPaceProvider.overrideWithValue(Duration.zero),
         ],
         child: const RippedApp(),
       ),
@@ -70,10 +73,36 @@ void main() {
       await settle(tester, frames: 30);
 
       // Active workout: log the first set with one tap.
-      expect(find.byType(SetRow), findsWidgets);
-      await tester.tap(find.bySemanticsLabel('Mark set 1 done').first);
+      // Focus view: one set, one big button.
+      expect(find.text('SET 1 OF 3'), findsOneWidget);
+      expect(find.text('First set. Start steady.'), findsOneWidget);
+      await tester.tap(find.text('Set 1 done'));
       await settle(tester);
-      expect(find.text('Rest'), findsOneWidget);
+      expect(find.text('REST'), findsOneWidget);
+      expect(find.textContaining('Next: Set 2 of 3'), findsOneWidget);
+
+      // Skipping rest brings up the next set.
+      await tester.tap(find.text('Skip rest'));
+      await settle(tester);
+      expect(find.text('SET 2 OF 3'), findsOneWidget);
+      expect(find.text('Set 2 done'), findsOneWidget);
+
+      // Every set stays reachable: undo the first one from the sheet.
+      await tester.tap(find.text('All sets'));
+      await settle(tester);
+      expect(find.byType(SetRow), findsNWidgets(3));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(SetRow).first,
+          matching: find.byType(IconButton),
+        ),
+      );
+      await settle(tester);
+      await tester.tapAt(const Offset(180, 40));
+      await settle(tester);
+      expect(find.text('Set 1 done'), findsOneWidget);
+      await tester.tap(find.text('Set 1 done'));
+      await settle(tester);
 
       // Finish.
       await tester.tap(find.text('Finish'));
@@ -83,8 +112,12 @@ void main() {
       await settle(tester, frames: 40);
 
       expect(find.text('Workout complete'), findsOneWidget);
-      expect(find.text('NEXT TIME'), findsOneWidget);
+      // Badges earned depend on the time of day (night owl, early bird),
+      // so scroll rather than assume what fits on screen.
       expect(find.textContaining('XP'), findsWidgets);
+      await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+      await settle(tester);
+      expect(find.text('NEXT TIME'), findsOneWidget);
       await tester.tap(find.text('Done'));
       await settle(tester);
 
@@ -137,7 +170,7 @@ void main() {
     });
     await audit('active workout');
     await step(() async {
-      await tester.tap(find.bySemanticsLabel('Mark set 1 done').first);
+      await tester.tap(find.text('Set 1 done'));
       await settle(tester);
     });
     await audit('active workout resting');
@@ -212,6 +245,93 @@ void main() {
     });
   });
 
+  testWidgets('the plan can be edited before accepting it', (tester) async {
+    await tester.runAsync(() async {
+      await pumpApp(tester);
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+
+      // Personal header from the answers.
+      expect(find.text('BUILT FOR YOU'), findsOneWidget);
+      expect(find.textContaining('days a week'), findsOneWidget);
+
+      final before = (await ProgramRepository(db).activeProgram())!.days.first;
+      await tester.tap(find.byTooltip('Edit plan'));
+      await settle(tester);
+      expect(find.text('Add exercise'), findsWidgets);
+
+      // Remove the first exercise of the first day.
+      final firstName = CatalogRepository(realCatalog())
+          .byId(before.exercises.first.exerciseId)
+          .name;
+      final remove = find.byTooltip('Remove $firstName').first;
+      await tester.ensureVisible(remove);
+      await settle(tester);
+      await tester.tap(remove);
+      await settle(tester);
+      final after = (await ProgramRepository(db).activeProgram())!.days.first;
+      expect(after.exercises, hasLength(before.exercises.length - 1));
+
+      // Change sets on what is now the first exercise.
+      final nextName = CatalogRepository(realCatalog())
+          .byId(after.exercises.first.exerciseId)
+          .name;
+      await tester.ensureVisible(find.text(nextName).first);
+      await settle(tester);
+      await tester.tap(find.text(nextName).first);
+      await settle(tester);
+      expect(find.text('Rest between sets'), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      await tester.tap(find.byTooltip('Done editing'));
+      await settle(tester);
+      expect(find.text('Looks good'), findsOneWidget);
+      await unmount(tester);
+    });
+  });
+
+  testWidgets('a missed workout can be skipped or another one picked', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await pumpApp(tester);
+      await tester.tap(find.text('Skip'));
+      await settle(tester);
+      await tester.tap(find.text('I understand'));
+      await settle(tester, frames: 40);
+      await tester.tap(find.text('Looks good'));
+      await settle(tester);
+
+      // A brand-new plan has missed nothing.
+      expect(find.textContaining('You missed'), findsNothing);
+
+      // Pretend the plan is ten days old: with Mon/Wed/Fri there is
+      // always a training day in the last three days.
+      await db
+          .update(db.programs)
+          .write(
+            ProgramsCompanion(
+              startedAt: Value(
+                DateTime.now().subtract(const Duration(days: 10)),
+              ),
+            ),
+          );
+      await settle(tester, frames: 25);
+      expect(find.textContaining('You missed'), findsOneWidget);
+
+      await tester.tap(find.text('Skip Full Body A'));
+      await settle(tester, frames: 25);
+      expect(find.textContaining('You missed'), findsNothing);
+      final choices = await SettingsRepository(db).scheduleChoices();
+      expect(choices.overrideFor(0), 1);
+      expect(choices.missedHandled, isNotNull);
+      await unmount(tester);
+    });
+  });
+
   testWidgets('history lists the finished workout', (tester) async {
     await tester.runAsync(() async {
       await pumpApp(tester);
@@ -224,6 +344,11 @@ void main() {
 
       await tester.tap(navTab('Progress'));
       await settle(tester);
+      // New in Phase 6: this week's recap and the achievements preview.
+      expect(find.text('THIS WEEK'), findsOneWidget);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+      await settle(tester);
+      expect(find.text('0 of 32 earned'), findsOneWidget);
       expect(find.text('No workouts yet'), findsOneWidget);
       await unmount(tester);
     });

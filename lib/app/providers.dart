@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:ripped/app/config.dart';
@@ -11,14 +12,21 @@ import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/notifications/reminder_service.dart';
 import 'package:ripped/core/review/review_service.dart';
 import 'package:ripped/core/sync/sync_service.dart';
+import 'package:ripped/domain/engagement/notification_plan.dart';
 import 'package:ripped/domain/gamification/streak.dart';
 import 'package:ripped/domain/gamification/xp.dart';
+import 'package:ripped/domain/insights/achievements.dart';
+import 'package:ripped/domain/insights/muscle_balance.dart';
+import 'package:ripped/domain/insights/recovery_advisor.dart';
+import 'package:ripped/domain/insights/session_log.dart';
+import 'package:ripped/domain/insights/weekly_recap.dart';
 import 'package:ripped/domain/plan/plan_generator.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/domain/plan/schedule.dart';
 import 'package:ripped/features/plan/data/program_repository.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
 import 'package:ripped/features/workout/data/workout_repository.dart';
+import 'package:ripped/l10n/gen/app_localizations.dart';
 
 // Infrastructure: created in bootstrap (or tests) and overridden.
 
@@ -146,6 +154,10 @@ final todayStatusProvider = Provider<AsyncValue<TodayStatus>>((ref) {
       programDayCount: program.value?.days.length ?? 0,
       completedAt: [for (final w in done) w.startedAt],
       lastCompletedDayIndex: done.isEmpty ? null : done.first.dayIndex,
+      nextDayOverride: ref
+          .watch(scheduleChoicesProvider)
+          .value
+          ?.overrideFor(done.length),
     ),
   );
 });
@@ -182,6 +194,69 @@ final recordsProvider = StreamProvider<List<PersonalRecordRow>>(
   (ref) => ref.watch(workoutRepositoryProvider).watchRecords(),
 );
 
+// Insights (Phase 6): all derived from the workout log.
+
+final sessionsProvider = StreamProvider<List<SessionLog>>(
+  (ref) => ref.watch(workoutRepositoryProvider).watchSessions(),
+);
+
+final achievementStatsProvider = Provider<AchievementStats>(
+  (ref) => AchievementStats.fromSessions(
+    ref.watch(sessionsProvider).value ?? const [],
+    records: ref.watch(recordsProvider).value?.length ?? 0,
+    level: ref.watch(levelProvider).level,
+    bestStreakWeeks: Streaks.best(ref.watch(streakProvider)),
+  ),
+);
+
+final weeklyRecapProvider = Provider<WeeklyRecap>(
+  (ref) => WeeklyRecap.of(
+    ref.watch(sessionsProvider).value ?? const [],
+    DateTime.now(),
+  ),
+);
+
+/// Sets per muscle group in the current week.
+final muscleBalanceProvider = Provider<Map<MuscleGroup, int>>(
+  (ref) => MuscleBalance.setsPerGroup(
+    ref.watch(weeklyRecapProvider).sessions,
+    ref.watch(catalogProvider).maybe,
+  ),
+);
+
+final coachSettingsProvider = StreamProvider<CoachSettings>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchCoach(),
+);
+
+/// Lighter weights are in effect right now.
+final easyWeekActiveProvider = Provider<bool>((ref) {
+  final until = ref.watch(coachSettingsProvider).value?.easyWeekUntil;
+  return until != null && DateTime.now().isBefore(until);
+});
+
+final easyWeekSuggestionProvider = Provider<EasyWeekReason?>((ref) {
+  if (ref.watch(easyWeekActiveProvider)) return null;
+  final coach = ref.watch(coachSettingsProvider).value;
+  if (coach == null) return null;
+  return RecoveryAdvisor.suggestEasyWeek(
+    sessions: ref.watch(sessionsProvider).value ?? const [],
+    streakWeeks: ref.watch(streakProvider).weeks,
+    now: DateTime.now(),
+    lastEasyWeek: coach.lastEasyWeek,
+    dismissedAt: coach.easyWeekDismissedAt,
+  );
+});
+
+final planRefreshSuggestionProvider = Provider<bool>((ref) {
+  final coach = ref.watch(coachSettingsProvider).value;
+  if (coach == null) return false;
+  return RecoveryAdvisor.suggestPlanRefresh(
+    planStartedAt: ref.watch(activeProgramProvider).value?.startedAt,
+    now: DateTime.now(),
+    dismissedAt: coach.planRefreshDismissedAt,
+  );
+});
+
 // Reminders.
 
 final settingsRepositoryProvider = Provider<SettingsRepository>(
@@ -191,6 +266,10 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 /// Overridden in tests with a fake.
 final reminderSchedulerProvider = Provider<ReminderScheduler>(
   (ref) => LocalReminderScheduler(),
+);
+
+final hapticsEnabledProvider = StreamProvider<bool>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchHapticsEnabled(),
 );
 
 /// Theme read from the database before the first frame (no flash).
@@ -207,30 +286,114 @@ final remindersProvider = StreamProvider<ReminderSettings>(
   (ref) => ref.watch(settingsRepositoryProvider).watchReminders(),
 );
 
-/// Saves [settings] and (re)schedules or cancels the OS reminders to match
-/// the current training days. Returns false if permission was refused.
-Future<bool> applyReminders(
-  WidgetRef ref,
-  ReminderSettings settings, {
-  required String title,
-  required String body,
-}) async {
+/// Saves [settings] and rebuilds the notifications to match. Returns false
+/// if permission was refused.
+Future<bool> applyReminders(WidgetRef ref, ReminderSettings settings) async {
   final scheduler = ref.read(reminderSchedulerProvider);
   if (settings.enabled && !await scheduler.requestPermission()) return false;
   await ref.read(settingsRepositoryProvider).saveReminders(settings);
-  if (!settings.enabled) {
-    await scheduler.cancelAll();
-    return true;
-  }
-  await scheduler.schedule(
-    weekdays: ref.read(profileProvider).trainingDays,
-    hour: settings.hour,
-    minute: settings.minute,
-    title: (_) => title,
-    body: body,
-  );
+  await refreshNotifications(ref.container, clearWhenOff: true);
   return true;
 }
+
+/// Rebuilds every scheduled notification from the current state. Called
+/// when the app opens, a workout is finished, the plan or reminder
+/// settings change, or a missed workout is dealt with. Never throws.
+Future<void> refreshNotifications(
+  ProviderContainer container, {
+  bool clearWhenOff = false,
+}) async {
+  final read = container.read;
+  try {
+    final settings = read(settingsRepositoryProvider);
+    final scheduler = read(reminderSchedulerProvider);
+    final reminders = await settings.reminders();
+    if (!reminders.enabled) {
+      // Don't wake the notification plugin for someone who never asked.
+      if (clearWhenOff) await scheduler.cancelAll();
+      return;
+    }
+    final programs = read(programRepositoryProvider);
+    final profile = await programs.profile();
+    final program = await programs.activeProgram();
+    if (profile == null || program == null || program.days.isEmpty) {
+      await scheduler.cancelAll();
+      return;
+    }
+    final done = await read(workoutRepositoryProvider).watchCompleted().first;
+    final choices = await settings.scheduleChoices();
+    final now = DateTime.now();
+    final completedAt = [for (final w in done) w.startedAt];
+    final next = Schedule.today(
+      now: now,
+      profile: profile,
+      programDayCount: program.days.length,
+      completedAt: completedAt,
+      lastCompletedDayIndex: done.isEmpty ? null : done.first.dayIndex,
+      nextDayOverride: choices.overrideFor(done.length),
+    ).nextDayIndex;
+    final notices = NotificationPlanner.plan(
+      now: now,
+      trainingWeekdays: profile.trainingDays.toSet(),
+      hour: reminders.hour,
+      minute: reminders.minute,
+      completedAt: completedAt,
+      planSince: program.startedAt,
+      missedHandled: choices.missedHandled,
+    );
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final nextName = program.days[next].name;
+    var named = false;
+    await scheduler.replace([
+      for (final n in notices)
+        switch (n.kind) {
+          NoticeKind.catchUp => PlannedNotification(
+            at: n.at,
+            title: l10n.notifyCatchUpTitle,
+            body: l10n.notifyCatchUpBody(nextName),
+          ),
+          // Only the very next workout is known by name.
+          NoticeKind.workout when !named => () {
+            named = true;
+            return PlannedNotification(
+              at: n.at,
+              title: l10n.notifyWorkoutTitle(nextName),
+              body: l10n.reminderBody,
+            );
+          }(),
+          NoticeKind.workout => PlannedNotification(
+            at: n.at,
+            title: l10n.reminderTitle,
+            body: l10n.reminderBody,
+          ),
+        },
+    ]);
+  } on Object catch (e) {
+    debugPrint('Notification refresh failed: $e');
+  }
+}
+
+final scheduleChoicesProvider = StreamProvider<ScheduleChoices>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchScheduleChoices(),
+);
+
+/// A training day that went by without a workout and hasn't been dealt
+/// with yet (see `Schedule.missedDay`).
+final missedDayProvider = Provider<DateTime?>((ref) {
+  final choices = ref.watch(scheduleChoicesProvider).value;
+  final done = ref.watch(completedWorkoutsProvider).value;
+  final program = ref.watch(activeProgramProvider).value;
+  if (choices == null || done == null || program == null) return null;
+  final missed = Schedule.missedDay(
+    now: DateTime.now(),
+    trainingWeekdays: ref.watch(profileProvider).trainingDays.toSet(),
+    completedAt: [for (final w in done) w.startedAt],
+    planSince: program.startedAt,
+  );
+  if (missed == null) return null;
+  final handled = choices.missedHandled;
+  return handled != null && Schedule.sameDay(handled, missed) ? null : missed;
+});
 
 // Accounts (optional).
 

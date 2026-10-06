@@ -10,6 +10,7 @@ import 'package:ripped/core/db/settings_repository.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 import 'package:ripped/domain/plan/profile.dart';
 import 'package:ripped/features/settings/presentation/account_card.dart';
 import 'package:ripped/features/settings/presentation/data_privacy_tiles.dart';
@@ -98,6 +99,24 @@ class YouScreen extends ConsumerWidget {
               onTap: () => showAppSheet<void>(
                 context,
                 builder: (context) => const _ThemeSheet(),
+              ),
+            ),
+            AppListTile(
+              icon: Symbols.vibration_rounded,
+              title: l10n.hapticsTitle,
+              subtitle: l10n.hapticsSub,
+              trailing: Switch(
+                value: ref.watch(hapticsEnabledProvider).value ?? true,
+                onChanged: (on) {
+                  unawaited(
+                    ref
+                        .read(settingsRepositoryProvider)
+                        .saveHapticsEnabled(enabled: on),
+                  );
+                  // Let them feel what they just turned on.
+                  Haptics.enabled = on;
+                  Haptics.play(HapticCue.setDone);
+                },
               ),
             ),
             SectionHeader(l10n.sectionReminders),
@@ -193,12 +212,7 @@ class _RemindersTiles extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final ok = await applyReminders(
-      ref,
-      next,
-      title: l10n.reminderTitle,
-      body: l10n.reminderBody,
-    );
+    final ok = await applyReminders(ref, next);
     if (ok && next.enabled) {
       ref.read(analyticsProvider).track(AnalyticsEvent.remindersEnabled);
     }

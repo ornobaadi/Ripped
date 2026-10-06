@@ -157,12 +157,12 @@ Scope
 ## Phase 6 — Retention & adaptation
 
 Pick based on data, roughly in this order:
-- [ ] Achievements (~30, some hidden)
+- [x] Achievements (32, five hidden), derived from the log; new ones shown on the workout summary
 - [ ] Home-screen widget (streak + start)
 - [ ] Apple Health / Health Connect write (opt-in)
-- [ ] Weekly recap card (shareable, privacy-safe)
-- [ ] Muscle map of the week
-- [ ] Smarter adaptation: use feeling + RPE trends, auto-suggest deloads, plan refresh every 6–8 weeks
+- [x] Weekly recap card on Progress (shareable image + text, totals only)
+- [~] Muscles this week: sets per muscle group as bars (a body-map drawing is still open)
+- [~] Smarter adaptation: easy-week offer (3 tough sessions in a row, or 6+ straight weeks) with ~10% lighter loads and paused progression; plan-refresh offer after 8 weeks. RPE not collected yet
 - [ ] Expand catalog + start recording own demo clips for top 50 exercises
 
 **Exit criteria (to unlock Phase 7)**

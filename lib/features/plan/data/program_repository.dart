@@ -45,9 +45,17 @@ class ProgramDayView {
 }
 
 class ProgramView {
-  const new({required this.id, required this.name, required this.days});
+  const new({
+    required this.id,
+    required this.name,
+    required this.days,
+    this.startedAt,
+  });
 
   final String id;
+
+  /// When this plan became the active one.
+  final DateTime? startedAt;
   final String name;
   final List<ProgramDayView> days;
 }
@@ -200,6 +208,7 @@ class ProgramRepository {
     return ProgramView(
       id: program.id,
       name: program.name,
+      startedAt: program.startedAt,
       days: [
         for (final d in days)
           ProgramDayView(
@@ -236,6 +245,145 @@ class ProgramRepository {
           updatedAt: Value(DateTime.now()),
         ),
       );
+
+  // ---- editing (the user's own changes to the plan) ----
+
+  Future<List<ProgramExercise>> _dayRows(String dayId) =>
+      (_db.select(_db.programExercises)
+            ..where((e) => e.programDayId.equals(dayId) & e.deletedAt.isNull())
+            ..orderBy([(e) => OrderingTerm.asc(e.sortOrder)]))
+          .get();
+
+  /// Appends an exercise to a day. Returns false when the day is full.
+  Future<bool> addExercise(
+    String dayId,
+    String exerciseId,
+    Prescription prescription,
+  ) => _db.transaction(() async {
+    final rows = await _dayRows(dayId);
+    if (rows.length >= PlanLimits.maxExercisesPerDay) return false;
+    final p = PlanLimits.clamp(prescription);
+    await _db
+        .into(_db.programExercises)
+        .insert(
+          ProgramExercisesCompanion.insert(
+            programDayId: dayId,
+            exerciseId: exerciseId,
+            sortOrder: rows.isEmpty ? 0 : rows.last.sortOrder + 1,
+            sets: p.sets,
+            repMin: p.repMin,
+            repMax: p.repMax,
+            restSeconds: p.restSeconds,
+            reason: 'Your pick',
+          ),
+        );
+    return true;
+  });
+
+  /// Soft-deletes one planned exercise. A day always keeps at least one;
+  /// returns false when this is the last.
+  Future<bool> removeExercise(String programExerciseId) => _db.transaction(
+    () async {
+      final row = await (_db.select(
+        _db.programExercises,
+      )..where((e) => e.id.equals(programExerciseId))).getSingleOrNull();
+      if (row == null) return false;
+      if ((await _dayRows(row.programDayId)).length <= 1) return false;
+      final now = DateTime.now();
+      await (_db.update(
+        _db.programExercises,
+      )..where((e) => e.id.equals(programExerciseId))).write(
+        ProgramExercisesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
+      return true;
+    },
+  );
+
+  /// Moves an exercise within its day ([newIndex] as in a reorderable
+  /// list after removal).
+  Future<void> moveExercise(String dayId, int oldIndex, int newIndex) =>
+      _db.transaction(() async {
+        final rows = await _dayRows(dayId);
+        if (oldIndex < 0 || oldIndex >= rows.length) return;
+        final moved = rows.removeAt(oldIndex);
+        rows.insert(newIndex.clamp(0, rows.length), moved);
+        final now = DateTime.now();
+        for (final (i, r) in rows.indexed) {
+          if (r.sortOrder == i) continue;
+          await (_db.update(
+            _db.programExercises,
+          )..where((e) => e.id.equals(r.id))).write(
+            ProgramExercisesCompanion(
+              sortOrder: Value(i),
+              updatedAt: Value(now),
+            ),
+          );
+        }
+      });
+
+  /// Replaces a day's exercises with a freshly built day (soft-deleting
+  /// the old ones) and renames it to match.
+  Future<void> replaceDay(
+    String dayId,
+    PlanDay day,
+  ) => _db.transaction(() async {
+    final now = DateTime.now();
+    await (_db.update(
+      _db.programExercises,
+    )..where((e) => e.programDayId.equals(dayId) & e.deletedAt.isNull())).write(
+      ProgramExercisesCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+    );
+    for (final (order, e) in day.exercises.indexed) {
+      await _db
+          .into(_db.programExercises)
+          .insert(
+            ProgramExercisesCompanion.insert(
+              programDayId: dayId,
+              exerciseId: e.exerciseId,
+              sortOrder: order,
+              sets: e.prescription.sets,
+              repMin: e.prescription.repMin,
+              repMax: e.prescription.repMax,
+              restSeconds: e.prescription.restSeconds,
+              reason: e.reason,
+            ),
+          );
+    }
+    await renameDay(dayId, day.name);
+  });
+
+  Future<void> updatePrescription(
+    String programExerciseId,
+    Prescription prescription,
+  ) {
+    final p = PlanLimits.clamp(prescription);
+    return (_db.update(
+      _db.programExercises,
+    )..where((e) => e.id.equals(programExerciseId))).write(
+      ProgramExercisesCompanion(
+        sets: Value(p.sets),
+        repMin: Value(p.repMin),
+        repMax: Value(p.repMax),
+        restSeconds: Value(p.restSeconds),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> renameDay(String dayId, String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
+    await (_db.update(_db.programDays)..where((d) => d.id.equals(dayId))).write(
+      ProgramDaysCompanion(
+        name: Value(
+          trimmed.length > PlanLimits.maxDayNameLength
+              ? trimmed.substring(0, PlanLimits.maxDayNameLength)
+              : trimmed,
+        ),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
 }
 
 extension StartWith<T> on Stream<T> {

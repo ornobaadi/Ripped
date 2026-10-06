@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 import 'package:ripped/l10n/l10n.dart';
 
 /// Big-number stepper for weight and reps: `[-]  60 kg  [+]`.
@@ -38,7 +36,7 @@ class ValueStepper extends StatelessWidget {
   void _change(double delta) {
     final next = (value + delta).clamp(min, max);
     if (next != value) {
-      unawaited(HapticFeedback.selectionClick());
+      Haptics.play(HapticCue.tap);
       onChanged(next);
     }
   }

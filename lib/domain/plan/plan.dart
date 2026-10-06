@@ -3,7 +3,7 @@ library;
 
 import 'package:meta/meta.dart';
 
-enum SplitType { fullBody, upperLower, upperLowerPpl, pushPullLegs }
+enum SplitType { fullBody, upperLower, upperLowerPpl, pushPullLegs, bodyPart }
 
 /// Sets x target range for one exercise. For timed exercises the range is
 /// in seconds.
@@ -86,4 +86,30 @@ class GeneratedPlan {
   final SplitType split;
   final List<PlanDay> days;
   final int generatorVersion;
+}
+
+/// Bounds for hand-edited plans, so a typo can't produce a harmful or
+/// nonsensical session.
+abstract final class PlanLimits {
+  static const minSets = 1;
+  static const maxSets = 8;
+  static const minReps = 1;
+  static const maxReps = 30;
+  static const minRest = 15;
+  static const maxRest = 300;
+  static const restStep = 15;
+  static const maxExercisesPerDay = 12;
+  static const maxDayNameLength = 40;
+
+  /// A prescription pulled back inside the bounds, with repMin <= repMax.
+  static Prescription clamp(Prescription p) {
+    final lo = p.repMin.clamp(minReps, maxReps);
+    final hi = p.repMax.clamp(lo, maxReps);
+    return Prescription(
+      sets: p.sets.clamp(minSets, maxSets),
+      repMin: lo,
+      repMax: hi,
+      restSeconds: p.restSeconds.clamp(minRest, maxRest),
+    );
+  }
 }

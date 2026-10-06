@@ -47,12 +47,37 @@ abstract final class Schedule {
   static bool sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
+  /// How far back a missed workout is still worth mentioning.
+  static const missedLookbackDays = 3;
+
+  /// The most recent training day before today that went by without a
+  /// workout (and nothing was done since), or null. Days before the plan
+  /// existed don't count.
+  static DateTime? missedDay({
+    required DateTime now,
+    required Set<int> trainingWeekdays,
+    required List<DateTime> completedAt,
+    DateTime? planSince,
+  }) {
+    final today = DateTime(now.year, now.month, now.day);
+    for (var back = 1; back <= missedLookbackDays; back++) {
+      final day = addDays(today, -back);
+      if (!trainingWeekdays.contains(day.weekday)) continue;
+      // Only the latest scheduled day matters.
+      if (planSince == null || !planSince.isBefore(day)) return null;
+      final trainedSince = completedAt.any((d) => !d.isBefore(day));
+      return trainedSince ? null : day;
+    }
+    return null;
+  }
+
   static TodayStatus today({
     required DateTime now,
     required TrainingProfile profile,
     required int programDayCount,
     required List<DateTime> completedAt,
     required int? lastCompletedDayIndex,
+    int? nextDayOverride,
   }) {
     final start = weekStart(now);
     final end = addDays(start, 7);
@@ -62,7 +87,13 @@ abstract final class Schedule {
     final doneToday = thisWeek.any((d) => sameDay(d, now));
     final trainingDays = profile.trainingDays.toSet();
 
-    final next = programDayCount == 0 || lastCompletedDayIndex == null
+    // The user's own pick (skip a workout, choose another) wins over the
+    // rotation.
+    final next = programDayCount == 0
+        ? 0
+        : nextDayOverride != null
+        ? nextDayOverride % programDayCount
+        : lastCompletedDayIndex == null
         ? 0
         : (lastCompletedDayIndex + 1) % programDayCount;
 

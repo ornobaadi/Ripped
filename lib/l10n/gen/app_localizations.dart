@@ -1024,6 +1024,798 @@ abstract class AppLocalizations {
   /// **'Which features get used. Never your workouts, weights or account.'**
   String get usageDataSub;
 
+  /// No description provided for @thisWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get thisWeekTitle;
+
+  /// No description provided for @thisWeekEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged yet this week. Your first workout fills this in.'**
+  String get thisWeekEmpty;
+
+  /// No description provided for @shareWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this week'**
+  String get shareWeek;
+
+  /// No description provided for @shareWeekText.
+  ///
+  /// In en, this message translates to:
+  /// **'My week on Ripped: {workouts} workouts, {sets} sets, {volume} lifted.'**
+  String shareWeekText(int workouts, int sets, String volume);
+
+  /// No description provided for @recapWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts'**
+  String get recapWorkouts;
+
+  /// No description provided for @recapSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets'**
+  String get recapSets;
+
+  /// No description provided for @recapVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifted'**
+  String get recapVolume;
+
+  /// No description provided for @recapTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get recapTime;
+
+  /// No description provided for @minutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String minutesShort(int minutes);
+
+  /// No description provided for @recapUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Up {percent}% on last week'**
+  String recapUp(int percent);
+
+  /// No description provided for @recapDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Down {percent}% on last week'**
+  String recapDown(int percent);
+
+  /// No description provided for @muscleBalanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscles this week'**
+  String get muscleBalanceTitle;
+
+  /// No description provided for @muscleSets.
+  ///
+  /// In en, this message translates to:
+  /// **'{muscle}: {count} sets'**
+  String muscleSets(String muscle, int count);
+
+  /// No description provided for @muscleChest.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest'**
+  String get muscleChest;
+
+  /// No description provided for @muscleBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get muscleBack;
+
+  /// No description provided for @muscleShoulders.
+  ///
+  /// In en, this message translates to:
+  /// **'Shoulders'**
+  String get muscleShoulders;
+
+  /// No description provided for @muscleArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get muscleArms;
+
+  /// No description provided for @muscleCore.
+  ///
+  /// In en, this message translates to:
+  /// **'Core'**
+  String get muscleCore;
+
+  /// No description provided for @muscleLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Legs'**
+  String get muscleLegs;
+
+  /// No description provided for @achievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get achievementsTitle;
+
+  /// No description provided for @achievementsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{earned} of {total} earned'**
+  String achievementsCount(int earned, int total);
+
+  /// No description provided for @achievementsSeeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all achievements'**
+  String get achievementsSeeAll;
+
+  /// No description provided for @achievementEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}, earned'**
+  String achievementEarned(String title);
+
+  /// No description provided for @achievementHiddenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden achievement'**
+  String get achievementHiddenTitle;
+
+  /// No description provided for @achievementHiddenSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep training to uncover it'**
+  String get achievementHiddenSub;
+
+  /// No description provided for @achievementUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement unlocked'**
+  String get achievementUnlocked;
+
+  /// No description provided for @percent.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String percent(int value);
+
+  /// No description provided for @achGroupWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing up'**
+  String get achGroupWorkouts;
+
+  /// No description provided for @achGroupStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaks'**
+  String get achGroupStreak;
+
+  /// No description provided for @achGroupRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get achGroupRecords;
+
+  /// No description provided for @achGroupVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Total lifted'**
+  String get achGroupVolume;
+
+  /// No description provided for @achGroupLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Levels'**
+  String get achGroupLevel;
+
+  /// No description provided for @achGroupVariety.
+  ///
+  /// In en, this message translates to:
+  /// **'Variety'**
+  String get achGroupVariety;
+
+  /// No description provided for @achGroupSecret.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get achGroupSecret;
+
+  /// No description provided for @easyWeekOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for an easy week?'**
+  String get easyWeekOfferTitle;
+
+  /// No description provided for @easyWeekOfferFatigue.
+  ///
+  /// In en, this message translates to:
+  /// **'Your last few sessions felt tough. A lighter week helps you recover and come back stronger.'**
+  String get easyWeekOfferFatigue;
+
+  /// No description provided for @easyWeekOfferLongRun.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve trained hard for weeks in a row. A lighter week now keeps progress coming.'**
+  String get easyWeekOfferLongRun;
+
+  /// No description provided for @easyWeekAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Go easy this week'**
+  String get easyWeekAccept;
+
+  /// No description provided for @easyWeekActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy week'**
+  String get easyWeekActiveTitle;
+
+  /// No description provided for @easyWeekActiveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights are about 10% lighter with a set fewer until Monday. Your progress is saved for next week.'**
+  String get easyWeekActiveMessage;
+
+  /// No description provided for @easyWeekEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to normal'**
+  String get easyWeekEnd;
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
+
+  /// No description provided for @planRefreshTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshen up your plan?'**
+  String get planRefreshTitle;
+
+  /// No description provided for @planRefreshMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve followed this plan for two months. New exercises can spark new progress. Your history and records stay.'**
+  String get planRefreshMessage;
+
+  /// No description provided for @planRefreshAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a new plan'**
+  String get planRefreshAccept;
+
+  /// No description provided for @focusExerciseOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise {index} of {total}'**
+  String focusExerciseOf(int index, int total);
+
+  /// No description provided for @setOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Set {index} of {total}'**
+  String setOf(int index, int total);
+
+  /// No description provided for @changeSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Change set {number}: {load}'**
+  String changeSet(int number, String load);
+
+  /// No description provided for @tapToChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the numbers to change them'**
+  String get tapToChange;
+
+  /// No description provided for @allSets.
+  ///
+  /// In en, this message translates to:
+  /// **'All sets'**
+  String get allSets;
+
+  /// No description provided for @nextExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Next exercise'**
+  String get nextExercise;
+
+  /// No description provided for @allDoneFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'All sets done. Finish up'**
+  String get allDoneFinish;
+
+  /// No description provided for @exerciseDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise done'**
+  String get exerciseDone;
+
+  /// No description provided for @restNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {set} · {load}'**
+  String restNext(String set, String load);
+
+  /// No description provided for @skipRestLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip rest'**
+  String get skipRestLong;
+
+  /// No description provided for @workoutProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} sets done'**
+  String workoutProgress(int done, int total);
+
+  /// No description provided for @cueStart.
+  ///
+  /// In en, this message translates to:
+  /// **'First set. Start steady.'**
+  String get cueStart;
+
+  /// No description provided for @cueNewExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'New exercise. Find your groove.'**
+  String get cueNewExercise;
+
+  /// No description provided for @cueKeepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Good. Keep that form.'**
+  String get cueKeepGoing;
+
+  /// No description provided for @cueHalfway.
+  ///
+  /// In en, this message translates to:
+  /// **'This one takes you past halfway.'**
+  String get cueHalfway;
+
+  /// No description provided for @cueLastSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Last set of this exercise. Make it count.'**
+  String get cueLastSet;
+
+  /// No description provided for @cueFinalSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Final set of the workout. Finish strong.'**
+  String get cueFinalSet;
+
+  /// No description provided for @builtForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Built for you'**
+  String get builtForYou;
+
+  /// No description provided for @factSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days a week, {minutes} minutes each'**
+  String factSchedule(int days, int minutes);
+
+  /// No description provided for @factEquipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Training with: {gear}'**
+  String factEquipment(String gear);
+
+  /// No description provided for @factBodyweight.
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment needed'**
+  String get factBodyweight;
+
+  /// No description provided for @factProtect.
+  ///
+  /// In en, this message translates to:
+  /// **'Going easy on your {joints}'**
+  String factProtect(String joints);
+
+  /// No description provided for @factExercises.
+  ///
+  /// In en, this message translates to:
+  /// **'{exercises} exercises across {workouts} workouts'**
+  String factExercises(int exercises, int workouts);
+
+  /// No description provided for @trainingDaysCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} training days a week'**
+  String trainingDaysCount(int count);
+
+  /// No description provided for @planEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit plan'**
+  String get planEdit;
+
+  /// No description provided for @planEditDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done editing'**
+  String get planEditDone;
+
+  /// No description provided for @planRenameDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename day'**
+  String get planRenameDay;
+
+  /// No description provided for @planDayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Day name'**
+  String get planDayName;
+
+  /// No description provided for @planDayFull.
+  ///
+  /// In en, this message translates to:
+  /// **'This day is full. Remove an exercise first.'**
+  String get planDayFull;
+
+  /// No description provided for @planReorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder {name}'**
+  String planReorder(String name);
+
+  /// No description provided for @planRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}'**
+  String planRemove(String name);
+
+  /// No description provided for @planRestLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{line} · {seconds} s rest'**
+  String planRestLine(String line, int seconds);
+
+  /// No description provided for @planSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets'**
+  String get planSets;
+
+  /// No description provided for @planRepsFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps, from'**
+  String get planRepsFrom;
+
+  /// No description provided for @planRepsTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Reps, up to'**
+  String get planRepsTo;
+
+  /// No description provided for @planTimeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Time, from'**
+  String get planTimeFrom;
+
+  /// No description provided for @planTimeTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Time, up to'**
+  String get planTimeTo;
+
+  /// No description provided for @planRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest between sets'**
+  String get planRest;
+
+  /// No description provided for @onbSplitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to split your week?'**
+  String get onbSplitTitle;
+
+  /// No description provided for @onbSplitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sure? Keep the first one. You can change any day later.'**
+  String get onbSplitHint;
+
+  /// No description provided for @styleAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach\'s pick'**
+  String get styleAuto;
+
+  /// No description provided for @styleAutoSub.
+  ///
+  /// In en, this message translates to:
+  /// **'The best fit for your days: each muscle trained about twice a week with time to recover.'**
+  String get styleAutoSub;
+
+  /// No description provided for @styleFullBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Full body'**
+  String get styleFullBody;
+
+  /// No description provided for @styleFullBodySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything, every session. Great when you train two or three days.'**
+  String get styleFullBodySub;
+
+  /// No description provided for @styleUpperLower.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper / Lower'**
+  String get styleUpperLower;
+
+  /// No description provided for @styleUpperLowerSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper body one day, legs the next. Balanced and easy to follow.'**
+  String get styleUpperLowerSub;
+
+  /// No description provided for @stylePpl.
+  ///
+  /// In en, this message translates to:
+  /// **'Push / Pull / Legs'**
+  String get stylePpl;
+
+  /// No description provided for @stylePplSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushing muscles, pulling muscles, then legs. Popular for five or six days.'**
+  String get stylePplSub;
+
+  /// No description provided for @styleBodyPart.
+  ///
+  /// In en, this message translates to:
+  /// **'Body part days'**
+  String get styleBodyPart;
+
+  /// No description provided for @styleBodyPartSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest day, back day, leg day. One or two areas get all your focus.'**
+  String get styleBodyPartSub;
+
+  /// No description provided for @planRebuildDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild this day'**
+  String get planRebuildDay;
+
+  /// No description provided for @planRebuildDaySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick body parts and get a fresh set of exercises'**
+  String get planRebuildDaySub;
+
+  /// No description provided for @planRebuildTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What should this day train?'**
+  String get planRebuildTitle;
+
+  /// No description provided for @planRebuildHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick one or more. For example chest and shoulders together.'**
+  String get planRebuildHint;
+
+  /// No description provided for @planRebuildAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Build the day'**
+  String get planRebuildAction;
+
+  /// No description provided for @shareHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'My week'**
+  String get shareHeadline;
+
+  /// No description provided for @shareLifted.
+  ///
+  /// In en, this message translates to:
+  /// **'lifted this week'**
+  String get shareLifted;
+
+  /// No description provided for @shareTopMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Most trained: {muscle}'**
+  String shareTopMuscle(String muscle);
+
+  /// No description provided for @shareTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Ripped · the workout plan that adapts to you'**
+  String get shareTagline;
+
+  /// No description provided for @shareFormatPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get shareFormatPost;
+
+  /// No description provided for @shareFormatStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Story'**
+  String get shareFormatStory;
+
+  /// No description provided for @shareAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Share or save'**
+  String get shareAction;
+
+  /// No description provided for @shareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where it goes next. Pick Save or Photos to keep it on your phone.'**
+  String get shareHint;
+
+  /// No description provided for @hoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String hoursMinutes(int hours, int minutes);
+
+  /// No description provided for @praiseRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{A new personal record. You\'re getting stronger.} other{{count} new personal records. You\'re getting stronger.}}'**
+  String praiseRecords(int count);
+
+  /// No description provided for @praiseLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached level {level}. That\'s earned.'**
+  String praiseLevel(int level);
+
+  /// No description provided for @praiseWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'All {target} workouts done this week. That\'s how streaks are built.'**
+  String praiseWeek(int target);
+
+  /// No description provided for @praiseComeback.
+  ///
+  /// In en, this message translates to:
+  /// **'Good to have you back. The hardest one is done.'**
+  String get praiseComeback;
+
+  /// No description provided for @praiseFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first workout is in the books. The start is the hard part.'**
+  String get praiseFirst;
+
+  /// No description provided for @praiseProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout {total} done. {left, plural, =1{One more} other{{left} more}} to complete your week.'**
+  String praiseProgress(int total, int left);
+
+  /// No description provided for @praiseCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout {total} done. You keep showing up.'**
+  String praiseCount(int total);
+
+  /// No description provided for @hapticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration feedback'**
+  String get hapticsTitle;
+
+  /// No description provided for @hapticsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'A buzz when you log a set, when rest ends and when a workout is saved'**
+  String get hapticsSub;
+
+  /// No description provided for @notifyWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today: {name}'**
+  String notifyWorkoutTitle(String name);
+
+  /// No description provided for @notifyCatchUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday\'s workout is still here'**
+  String get notifyCatchUpTitle;
+
+  /// No description provided for @notifyCatchUpBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: do it today, save it for later or skip it. Your call.'**
+  String notifyCatchUpBody(String name);
+
+  /// No description provided for @missedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You missed {weekday}\'s workout'**
+  String missedTitle(String weekday);
+
+  /// No description provided for @missedRest.
+  ///
+  /// In en, this message translates to:
+  /// **'{missed} is still waiting. Today is a rest day, so it\'s up to you.'**
+  String missedRest(String missed);
+
+  /// No description provided for @missedTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'{missed} is still waiting. Do it today and {today} moves to your next training day, do both, or skip it.'**
+  String missedTraining(String missed, String today);
+
+  /// No description provided for @missedDoIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Do {name} today'**
+  String missedDoIt(String name);
+
+  /// No description provided for @missedDoBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Do both today'**
+  String get missedDoBoth;
+
+  /// No description provided for @missedSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip {name}'**
+  String missedSkip(String name);
+
+  /// No description provided for @missedKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it for my next training day'**
+  String get missedKeep;
+
+  /// No description provided for @missedSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped. Next up: {name}.'**
+  String missedSkipped(String name);
+
+  /// No description provided for @pickWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a different workout'**
+  String get pickWorkout;
+
+  /// No description provided for @pickWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to train?'**
+  String get pickWorkoutTitle;
+
+  /// No description provided for @secondWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Do {name} too'**
+  String secondWorkout(String name);
+
   /// No description provided for @appearance.
   ///
   /// In en, this message translates to:

@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/domain/gamification/xp.dart';
+import 'package:ripped/domain/plan/plan.dart';
 import 'package:ripped/domain/plan/plan_generator.dart';
 import 'package:ripped/domain/plan/profile.dart';
+import 'package:ripped/domain/plan/training_style.dart';
 import 'package:ripped/domain/progression/progression_engine.dart';
 import 'package:ripped/domain/records/personal_records.dart';
 import 'package:ripped/features/plan/data/program_repository.dart';
@@ -59,6 +61,150 @@ void main() {
     final active = await programs.activeProgram();
     expect(active!.id, isNot(first!.id));
     expect(active.days, hasLength(4));
+  });
+
+  test('easy week: lighter, a set fewer, and progression is paused', () async {
+    final day = await firstDay();
+
+    // A normal session first, so there is a working weight to ease from.
+    final first = await workouts.startWorkout(day);
+    final w1 = (await workouts.workout(first))!;
+    final normalSets = w1.exercises.first.sets.length;
+    for (final s in w1.exercises.first.sets) {
+      await workouts.editSet(s.id, weightKg: 60, reps: s.reps);
+      await workouts.logSet(s.id);
+    }
+    await workouts.finishWorkout(first, units: Units.kg);
+    final remembered = (await db.select(db.exerciseStates).get()).firstWhere(
+      (e) => e.exerciseId == 'barbell_back_squat',
+    );
+
+    final easy = await workouts.startWorkout(day, easyWeek: true);
+    final w2 = (await workouts.workout(easy))!;
+    final squat = w2.exercises.first;
+    expect(squat.sets.length, normalSets >= 3 ? normalSets - 1 : normalSets);
+    expect(squat.sets.first.weightKg, lessThan(remembered.currentWeightKg!));
+    expect(
+      squat.sets.first.weightKg,
+      closeTo(remembered.currentWeightKg! * 0.9, 2.5),
+    );
+
+    for (final s in squat.sets) {
+      await workouts.logSet(s.id);
+    }
+    await workouts.finishWorkout(easy, units: Units.kg, easyWeek: true);
+    final after = (await db.select(db.exerciseStates).get()).firstWhere(
+      (e) => e.exerciseId == 'barbell_back_squat',
+    );
+    expect(after.currentWeightKg, remembered.currentWeightKg);
+    expect(after.currentRepTarget, remembered.currentRepTarget);
+
+    // Both sessions appear in the log used for recaps and achievements.
+    final sessions = await workouts.watchSessions().first;
+    expect(sessions, hasLength(2));
+    expect(sessions.first.sets.first.exerciseId, 'barbell_back_squat');
+    expect(sessions.first.volumeKg, greaterThan(0));
+  });
+
+  group('editing the plan', () {
+    test('add, reorder, change and remove exercises', () async {
+      var day = await firstDay();
+      final before = day.exercises.map((e) => e.exerciseId).toList();
+
+      expect(
+        await programs.addExercise(
+          day.id,
+          'plank',
+          const Prescription(sets: 99, repMin: 40, repMax: 5, restSeconds: 1),
+        ),
+        isTrue,
+      );
+      day = await firstDay();
+      expect(day.exercises.last.exerciseId, 'plank');
+      // Out-of-range values are pulled back inside the limits.
+      final p = day.exercises.last.prescription;
+      expect(p.sets, PlanLimits.maxSets);
+      expect(p.repMin, PlanLimits.maxReps);
+      expect(p.repMax, PlanLimits.maxReps);
+      expect(p.restSeconds, PlanLimits.minRest);
+
+      // Move the new one to the top.
+      await programs.moveExercise(day.id, day.exercises.length - 1, 0);
+      day = await firstDay();
+      expect(day.exercises.map((e) => e.exerciseId), ['plank', ...before]);
+
+      await programs.updatePrescription(
+        day.exercises.first.id,
+        const Prescription(sets: 2, repMin: 20, repMax: 30, restSeconds: 45),
+      );
+      day = await firstDay();
+      expect(day.exercises.first.prescription.sets, 2);
+      expect(day.exercises.first.prescription.restSeconds, 45);
+
+      // Removing is a soft delete: gone from the plan, kept for sync.
+      final removedId = day.exercises.first.id;
+      expect(await programs.removeExercise(removedId), isTrue);
+      day = await firstDay();
+      expect(day.exercises.map((e) => e.exerciseId), before);
+      final row = await (db.select(
+        db.programExercises,
+      )..where((e) => e.id.equals(removedId))).getSingle();
+      expect(row.deletedAt, isNotNull);
+
+      // A workout started now follows the edited plan.
+      final id = await workouts.startWorkout(day);
+      expect(
+        (await workouts.workout(id))!.exercises.map((e) => e.exerciseId),
+        before,
+      );
+    });
+
+    test('a day keeps at least one exercise and has a size limit', () async {
+      var day = await firstDay();
+      for (final e in day.exercises.skip(1)) {
+        expect(await programs.removeExercise(e.id), isTrue);
+      }
+      day = await firstDay();
+      expect(day.exercises, hasLength(1));
+      expect(await programs.removeExercise(day.exercises.single.id), isFalse);
+
+      const p = Prescription(sets: 3, repMin: 8, repMax: 12, restSeconds: 60);
+      for (var i = 1; i < PlanLimits.maxExercisesPerDay; i++) {
+        expect(await programs.addExercise(day.id, 'plank', p), isTrue);
+      }
+      expect(await programs.addExercise(day.id, 'plank', p), isFalse);
+    });
+
+    test('rebuilding a day swaps in the new exercises and name', () async {
+      final day = await firstDay();
+      final oldIds = day.exercises.map((e) => e.id).toSet();
+      final built = PlanGenerator(catalog.all)
+          .buildDay({BodyPart.chest, BodyPart.shoulders}, profile);
+
+      await programs.replaceDay(day.id, built);
+      final after = await firstDay();
+      expect(after.id, day.id);
+      expect(after.name, 'Chest & Shoulders');
+      expect(
+        after.exercises.map((e) => e.exerciseId),
+        built.exercises.map((e) => e.exerciseId),
+      );
+      // The old rows are soft-deleted, so sync can carry the change.
+      final old = await (db.select(
+        db.programExercises,
+      )..where((e) => e.id.isIn(oldIds))).get();
+      expect(old.every((e) => e.deletedAt != null), isTrue);
+    });
+
+    test('rename trims, ignores blanks and caps the length', () async {
+      final day = await firstDay();
+      await programs.renameDay(day.id, '  Heavy legs  ');
+      expect((await firstDay()).name, 'Heavy legs');
+      await programs.renameDay(day.id, '   ');
+      expect((await firstDay()).name, 'Heavy legs');
+      await programs.renameDay(day.id, 'x' * 80);
+      expect((await firstDay()).name.length, PlanLimits.maxDayNameLength);
+    });
   });
 
   test('new workout pre-fills light starting weights', () async {

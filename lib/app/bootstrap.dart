@@ -12,6 +12,7 @@ import 'package:ripped/core/auth/auth_service.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/settings_repository.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 import 'package:ripped/core/sync/supabase_sync_remote.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
@@ -28,11 +29,13 @@ Future<void> bootstrap(AppFlavor flavor) async {
 
   // Local data first: the catalog and the user's DB, in parallel.
   final db = AppDatabase();
-  final (catalog, profile, theme) = await (
+  final (catalog, profile, theme, haptics) = await (
     CatalogRepository.load(),
     db.select(db.profiles).get(),
     SettingsRepository(db).theme(),
+    SettingsRepository(db).hapticsEnabled(),
   ).wait;
+  Haptics.enabled = haptics;
   final onboarded = profile.any((p) => p.onboardingDoneAt != null);
   // Not awaited: sign-in and backup come online in the background.
   final backend = _initBackend(config);

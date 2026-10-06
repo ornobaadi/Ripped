@@ -140,6 +140,22 @@ abstract final class Streaks {
     );
   }
 
+  /// The longest streak ever reached, for achievements.
+  static int best(StreakInfo info) {
+    var best = 0;
+    var run = 0;
+    for (final w in info.history) {
+      final counts = switch (w.status) {
+        WeekStatus.hit || WeekStatus.shielded => true,
+        WeekStatus.current => w.done >= info.target,
+        WeekStatus.missed => false,
+      };
+      run = counts ? run + 1 : (w.status == WeekStatus.current ? run : 0);
+      if (run > best) best = run;
+    }
+    return best;
+  }
+
   /// Whether finishing a workout now completes this week's target (and
   /// earns the streak-week bonus). [doneBefore] excludes this workout.
   static bool completesWeek({required int doneBefore, required int target}) =>

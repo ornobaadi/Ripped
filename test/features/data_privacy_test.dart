@@ -30,13 +30,7 @@ class FakeReminders implements ReminderScheduler {
   Future<bool> requestPermission() async => true;
 
   @override
-  Future<void> schedule({
-    required List<int> weekdays,
-    required int hour,
-    required int minute,
-    required String Function(int weekday) title,
-    required String body,
-  }) async {}
+  Future<void> replace(List<PlannedNotification> notifications) async {}
 }
 
 void main() {

@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 import 'package:ripped/l10n/l10n.dart';
 
 /// One row in the active workout: `Set 2   60 kg × 8   [✓]`.
@@ -34,7 +32,7 @@ class SetRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   void _toggle() {
-    unawaited(HapticFeedback.selectionClick());
+    Haptics.play(HapticCue.tap);
     onToggle();
   }
 

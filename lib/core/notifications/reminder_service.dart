@@ -4,19 +4,23 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Local training-day reminders (PRD 7.9). No server, no push token.
+/// One notification to show at a local time.
+class PlannedNotification {
+  const new({required this.at, required this.title, required this.body});
+
+  final DateTime at;
+  final String title;
+  final String body;
+}
+
+/// Local notifications (PRD 7.9). No server, no push token: everything is
+/// decided on the phone by `NotificationPlanner`.
 abstract interface class ReminderScheduler {
   /// Asks for notification permission; true when allowed.
   Future<bool> requestPermission();
 
-  /// Replaces all reminders with one weekly reminder per training day.
-  Future<void> schedule({
-    required List<int> weekdays,
-    required int hour,
-    required int minute,
-    required String Function(int weekday) title,
-    required String body,
-  });
+  /// Replaces everything scheduled with exactly [notifications].
+  Future<void> replace(List<PlannedNotification> notifications);
 
   Future<void> cancelAll();
 }
@@ -28,7 +32,7 @@ class LocalReminderScheduler implements ReminderScheduler {
   static const _channel = AndroidNotificationDetails(
     'reminders',
     'Workout reminders',
-    channelDescription: 'Reminders on your training days',
+    channelDescription: 'Your training days and missed workouts',
   );
 
   Future<void> _init() async {
@@ -61,30 +65,28 @@ class LocalReminderScheduler implements ReminderScheduler {
   }
 
   @override
-  Future<void> schedule({
-    required List<int> weekdays,
-    required int hour,
-    required int minute,
-    required String Function(int weekday) title,
-    required String body,
-  }) async {
+  Future<void> replace(List<PlannedNotification> notifications) async {
     await _init();
     await _plugin.cancelAll();
-    for (final day in weekdays) {
+    final now = tz.TZDateTime.now(tz.local);
+    for (final (id, n) in notifications.indexed) {
+      final when = tz.TZDateTime(
+        tz.local,
+        n.at.year,
+        n.at.month,
+        n.at.day,
+        n.at.hour,
+        n.at.minute,
+      );
+      if (!when.isAfter(now)) continue;
       await _plugin.zonedSchedule(
-        id: day,
-        title: title(day),
-        body: body,
-        scheduledDate: nextInstance(
-          tz.TZDateTime.now(tz.local),
-          day,
-          hour,
-          minute,
-        ),
+        id: id + 1,
+        title: n.title,
+        body: n.body,
+        scheduledDate: when,
         notificationDetails: const NotificationDetails(android: _channel),
         // Inexact is fine for a reminder and needs no exact-alarm permission.
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
     }
   }
@@ -93,27 +95,5 @@ class LocalReminderScheduler implements ReminderScheduler {
   Future<void> cancelAll() async {
     await _init();
     await _plugin.cancelAll();
-  }
-
-  /// Next [weekday] at [hour]:[minute] strictly after [now].
-  @visibleForTesting
-  static tz.TZDateTime nextInstance(
-    tz.TZDateTime now,
-    int weekday,
-    int hour,
-    int minute,
-  ) {
-    var t = tz.TZDateTime(
-      now.location,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-    while (t.weekday != weekday || !t.isAfter(now)) {
-      t = tz.TZDateTime(now.location, t.year, t.month, t.day + 1, hour, minute);
-    }
-    return t;
   }
 }

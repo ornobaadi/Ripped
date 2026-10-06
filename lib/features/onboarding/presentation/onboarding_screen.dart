@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
@@ -10,7 +11,12 @@ import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/domain/catalog/exercise.dart';
+import 'package:ripped/domain/plan/plan_generator.dart';
+import 'package:ripped/domain/plan/plan_summary.dart';
 import 'package:ripped/domain/plan/profile.dart';
+import 'package:ripped/domain/plan/training_style.dart';
+import 'package:ripped/features/onboarding/presentation/plan_building_view.dart';
+import 'package:ripped/features/plan/presentation/plan_labels.dart';
 import 'package:ripped/l10n/l10n.dart';
 
 /// Six questions, one per screen, every one skippable (design.md 3.1),
@@ -23,11 +29,14 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  static const _questionCount = 6;
+  static const _questionCount = 7;
   final _pages = PageController();
   int _page = 0;
-  bool _building = false;
+
+  /// Set while the plan is being built and saved.
+  PlanSummary? _building;
   late TrainingProfile _draft;
+  TrainingStyle _style = TrainingStyle.auto;
 
   @override
   void initState() {
@@ -36,6 +45,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _draft = ref.read(profileRowProvider).value == null
         ? const TrainingProfile()
         : ref.read(profileProvider);
+    unawaited(_loadStyle());
+  }
+
+  /// Rebuilding a plan starts from the style chosen last time.
+  Future<void> _loadStyle() async {
+    final saved = await ref.read(settingsRepositoryProvider).planStyle();
+    if (mounted && saved != null) {
+      setState(() => _style = TrainingStyle.parse(saved));
+    }
   }
 
   @override
@@ -83,14 +101,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   );
 
   Future<void> _finish() async {
-    setState(() => _building = true);
     final repo = ref.read(programRepositoryProvider);
-    final plan = ref.read(planGeneratorProvider).generate(_draft);
-    // Short, honest pause so the moment registers; the work is real.
+    final plan = ref
+        .read(planGeneratorProvider)
+        .generate(_draft, style: _style);
+    final summary = PlanSummary.of(_draft, plan);
+    final pace = ref.read(planBuildPaceProvider);
+    final wait = PlanBuildingView.duration(
+      summary.buildSteps(context.l10n).length,
+      pace,
+      still: MediaQuery.disableAnimationsOf(context),
+    );
+    setState(() => _building = summary);
+    // The work is real; the view just gives the moment room to register.
     await Future.wait([
       repo.saveProfile(_draft, onboardingDone: true, disclaimerAccepted: true),
       repo.saveProgram(plan),
-      Future<void>.delayed(const Duration(milliseconds: 900)),
+      ref.read(settingsRepositoryProvider).savePlanStyle(_style.name),
+      Future<void>.delayed(wait),
     ]);
     ref.read(analyticsProvider).track(AnalyticsEvent.onboardingCompleted, {
       'goal': _draft.goal.name,
@@ -99,29 +127,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       'session_minutes': _draft.sessionMinutes,
     });
     // Training days may have changed: move reminders with them.
-    final reminders = ref.read(remindersProvider).value;
-    if (mounted && (reminders?.enabled ?? false)) {
-      final l10n = context.l10n;
-      await applyReminders(
-        ref,
-        reminders!,
-        title: l10n.reminderTitle,
-        body: l10n.reminderBody,
-      );
-    }
+    await refreshNotifications(ref.container);
     if (mounted) context.go('/plan?onboarding=1');
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    if (_building) return const _BuildingPlan();
+    if (_building case final summary?) {
+      return PlanBuildingView(summary: summary);
+    }
 
     final steps = <Widget>[
       _GoalStep(_draft, _update),
       _ExperienceStep(_draft, _update),
       _EquipmentStep(_draft, _update),
       _DaysStep(_draft, _update),
+      _SplitStep(_draft, _style, (s) => setState(() => _style = s)),
       _LengthStep(_draft, _update),
       _AvoidStep(_draft, _update),
       const _DisclaimerStep(),
@@ -491,6 +513,62 @@ class _DaysStep extends StatelessWidget {
   }
 }
 
+/// How the week is divided. The coach's pick comes first; every option
+/// shows the week it would produce, so no gym vocabulary is needed.
+class _SplitStep extends StatelessWidget {
+  const new(this.p, this.style, this.onStyle);
+
+  final TrainingProfile p;
+  final TrainingStyle style;
+  final ValueChanged<TrainingStyle> onStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final options = PlanGenerator.styleOptions(p.daysPerWeek);
+    // A style that no longer fits the day count shows as the coach's pick.
+    final selected = options.contains(style) ? style : TrainingStyle.auto;
+    final weekdays = p.trainingDays;
+
+    // 1 January 2024 was a Monday.
+    String weekday(int day) => DateFormat.E().format(DateTime(2024, 1, day));
+
+    String week(TrainingStyle s) {
+      final names = PlanGenerator.dayNames(s, p.daysPerWeek);
+      return [
+        for (final (i, name) in names.indexed)
+          [weekday(weekdays[i % weekdays.length]), name].join(' '),
+      ].join(' · ');
+    }
+
+    (String, String) words(TrainingStyle s) => switch (s) {
+      TrainingStyle.auto => (l.styleAuto, l.styleAutoSub),
+      TrainingStyle.fullBody => (l.styleFullBody, l.styleFullBodySub),
+      TrainingStyle.upperLower => (l.styleUpperLower, l.styleUpperLowerSub),
+      TrainingStyle.pushPullLegs => (l.stylePpl, l.stylePplSub),
+      TrainingStyle.bodyPart => (l.styleBodyPart, l.styleBodyPartSub),
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _StepTitle(l.onbSplitTitle, l.onbSplitHint),
+        _Choices(
+          children: [
+            for (final s in options)
+              ChoiceCard(
+                title: words(s).$1,
+                subtitle: '${words(s).$2}\n${week(s)}',
+                selected: s == selected,
+                onTap: () => onStyle(s),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _LengthStep extends StatelessWidget {
   const new(this.p, this.update);
 
@@ -593,33 +671,6 @@ class _DisclaimerStep extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _BuildingPlan extends StatelessWidget {
-  const new();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox.square(
-              dimension: 40,
-              child: CircularProgressIndicator(strokeWidth: 3, color: c.accent),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              context.l10n.buildingPlan,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

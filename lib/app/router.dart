@@ -6,6 +6,7 @@ import 'package:ripped/app/shell.dart';
 import 'package:ripped/features/exercise/presentation/exercise_detail_screen.dart';
 import 'package:ripped/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:ripped/features/plan/presentation/plan_screen.dart';
+import 'package:ripped/features/progress/presentation/achievements_screen.dart';
 import 'package:ripped/features/progress/presentation/progress_screen.dart';
 import 'package:ripped/features/settings/presentation/legal_screen.dart';
 import 'package:ripped/features/settings/presentation/you_screen.dart';
@@ -92,6 +93,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/history/:id',
         builder: (_, state) =>
             WorkoutSummaryScreen(workoutId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/achievements',
+        builder: (_, _) => const AchievementsScreen(),
       ),
       GoRoute(
         path: '/legal/:doc',

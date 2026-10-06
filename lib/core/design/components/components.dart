@@ -14,3 +14,4 @@ export 'stat_tile.dart';
 export 'trend_chart.dart';
 export 'value_stepper.dart';
 export 'weekly_strip.dart';
+export 'workout_progress_strip.dart';

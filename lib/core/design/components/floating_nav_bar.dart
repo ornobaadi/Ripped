@@ -1,10 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:flutter/services.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
+import 'package:ripped/core/haptics/haptics.dart';
 
 class FloatingNavDestination {
   const new({required this.icon, required this.label});
@@ -65,7 +63,7 @@ class FloatingNavBar extends StatelessWidget {
                         selected: i == selectedIndex,
                         onTap: () {
                           if (i != selectedIndex) {
-                            unawaited(HapticFeedback.selectionClick());
+                            Haptics.play(HapticCue.tap);
                           }
                           onSelected(i);
                         },

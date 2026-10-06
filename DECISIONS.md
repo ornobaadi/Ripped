@@ -120,3 +120,36 @@ Listed under Phase 3 but they only matter for Pro (Phase 7) and need accounts th
 - **Decision:** Store review prompt after 3+ workouts and a positive outcome, max once per 120 days.
   **Why:** Phase 5 scope; asking at a high point, never mid-workout.
 
+## 2026-10-07 — Phase 6 insights
+
+- **Decision:** Achievements, recap and muscle balance are computed from the workout log on the fly; nothing new is stored or synced.
+  **Why:** Rule 6 (derived, never stored); works after restore/sync on a new phone with no migration. **Alternatives:** an `achievements` table (needs schema + RLS + sync for no gain).
+- **Decision:** Deload is an optional "easy week" the app offers; it lowers prefilled weights ~10%, drops a set, and does not save progression that week.
+  **Why:** Wellbeing rule 9 and "guidance, not orders". **Alternatives:** automatic deloads (surprising), RPE-based (no RPE data yet).
+
+## 2026-10-07 — Engaging flow: focus workout, plan reveal, plan editing
+
+- **Decision:** The workout screen shows one set at a time with a single large button, and rest takes over the hero. The set list moved to an "All sets" sheet.
+  **Why:** Owner feedback that tick boxes felt flat; one obvious next action. **Alternatives:** keep both views behind a setting (two screens to maintain).
+- **Decision:** Plan building shows the person's own answers ticking off (about 3 s) with a Lottie slot and a drawn fallback; the plan screen gets a "Built for you" header.
+  **Why:** Make the plan feel personal; Lottie files are the owner's to choose, so the app must not depend on them.
+- **Decision:** Plans are editable (add, remove, reorder, sets/reps/rest, rename day) with domain limits; no schema change.
+  **Why:** First step of customisation. Difficulty control, own workouts and a Pro mode are later rounds.
+
+## 2026-10-07 — Training styles, share card, warmer summary
+
+- **Decision:** The user can choose how the week is split (coach's pick, full body, upper/lower, push/pull/legs, body part days) and rebuild any day around chosen body parts. Every option shows the resulting week in plain words.
+  **Why:** Gym-goers think in "chest day / leg day"; newcomers need a default they can trust. Market check: Hevy and Strong make you build routines by hand, Fitbod decides everything for you; offering a sound default plus full edit sits between them. **Alternatives:** storing the style on the synced profile (needs a schema and server migration for little gain).
+- **Decision:** Weekly share image is a dedicated branded card in social sizes, not a screenshot of the in-app card.
+  **Why:** Owner feedback; the old capture was a wide strip unusable on social media.
+- **Decision:** The summary shows one personal line chosen from what happened, and confetti also fires for a completed week or a new badge.
+
+## 2026-10-07 — Haptics, missed workouts, notification rules
+
+- **Decision:** All vibration goes through one `Haptics` service with a named cue per moment and a single off switch; strong cues use the `vibration` package (VIBRATE permission) with a `HapticFeedback` fallback.
+  **Why:** Flutter's built-in haptics are too faint to notice mid-workout; one door keeps the switch honest.
+- **Decision:** The plan stays a rotation, not fixed weekdays. A skipped training day is surfaced on Today with choices (do it, do both, skip, keep for later), and any plan day can be picked by hand.
+  **Why:** A fixed calendar punishes a missed day; a rotation plus explicit choices gives the same control without a rescheduling UI. **Alternatives:** pinning workouts to dates with drag-to-reschedule.
+- **Decision:** Notifications are rebuilt from current facts as one-off notifications in a 7-day window: training-day reminders, never for a day already trained, at most one catch-up after a miss.
+  **Why:** Weekly repeating reminders fired even after the workout was done. Nothing is sent to people who stopped opening the app, by design.
+

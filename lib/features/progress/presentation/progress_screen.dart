@@ -12,6 +12,7 @@ import 'package:ripped/core/utils/format.dart';
 import 'package:ripped/core/utils/labels.dart';
 import 'package:ripped/domain/gamification/streak.dart';
 import 'package:ripped/domain/records/personal_records.dart';
+import 'package:ripped/features/progress/presentation/insights_sections.dart';
 import 'package:ripped/features/workout/data/workout_models.dart';
 import 'package:ripped/l10n/l10n.dart';
 
@@ -75,8 +76,11 @@ class ProgressScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  const WeekRecapSection(),
+                  const MuscleBalanceSection(),
                   SectionHeader(l10n.streakTitle),
                   _StreakCalendar(streak: streak),
+                  const AchievementsPreview(),
                   const _RecordsSection(),
                   const _TrendSection(),
                   SectionHeader(l10n.historyTitle),

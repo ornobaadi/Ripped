@@ -541,6 +541,505 @@ class AppLocalizationsEn extends AppLocalizations {
       'Which features get used. Never your workouts, weights or account.';
 
   @override
+  String get thisWeekTitle => 'This week';
+
+  @override
+  String get thisWeekEmpty =>
+      'Nothing logged yet this week. Your first workout fills this in.';
+
+  @override
+  String get shareWeek => 'Share this week';
+
+  @override
+  String shareWeekText(int workouts, int sets, String volume) {
+    return 'My week on Ripped: $workouts workouts, $sets sets, $volume lifted.';
+  }
+
+  @override
+  String get recapWorkouts => 'Workouts';
+
+  @override
+  String get recapSets => 'Sets';
+
+  @override
+  String get recapVolume => 'Lifted';
+
+  @override
+  String get recapTime => 'Time';
+
+  @override
+  String minutesShort(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String recapUp(int percent) {
+    return 'Up $percent% on last week';
+  }
+
+  @override
+  String recapDown(int percent) {
+    return 'Down $percent% on last week';
+  }
+
+  @override
+  String get muscleBalanceTitle => 'Muscles this week';
+
+  @override
+  String muscleSets(String muscle, int count) {
+    return '$muscle: $count sets';
+  }
+
+  @override
+  String get muscleChest => 'Chest';
+
+  @override
+  String get muscleBack => 'Back';
+
+  @override
+  String get muscleShoulders => 'Shoulders';
+
+  @override
+  String get muscleArms => 'Arms';
+
+  @override
+  String get muscleCore => 'Core';
+
+  @override
+  String get muscleLegs => 'Legs';
+
+  @override
+  String get achievementsTitle => 'Achievements';
+
+  @override
+  String achievementsCount(int earned, int total) {
+    return '$earned of $total earned';
+  }
+
+  @override
+  String get achievementsSeeAll => 'See all achievements';
+
+  @override
+  String achievementEarned(String title) {
+    return '$title, earned';
+  }
+
+  @override
+  String get achievementHiddenTitle => 'Hidden achievement';
+
+  @override
+  String get achievementHiddenSub => 'Keep training to uncover it';
+
+  @override
+  String get achievementUnlocked => 'Achievement unlocked';
+
+  @override
+  String percent(int value) {
+    return '$value%';
+  }
+
+  @override
+  String get achGroupWorkouts => 'Showing up';
+
+  @override
+  String get achGroupStreak => 'Streaks';
+
+  @override
+  String get achGroupRecords => 'Records';
+
+  @override
+  String get achGroupVolume => 'Total lifted';
+
+  @override
+  String get achGroupLevel => 'Levels';
+
+  @override
+  String get achGroupVariety => 'Variety';
+
+  @override
+  String get achGroupSecret => 'Hidden';
+
+  @override
+  String get easyWeekOfferTitle => 'Time for an easy week?';
+
+  @override
+  String get easyWeekOfferFatigue =>
+      'Your last few sessions felt tough. A lighter week helps you recover and come back stronger.';
+
+  @override
+  String get easyWeekOfferLongRun =>
+      'You\'ve trained hard for weeks in a row. A lighter week now keeps progress coming.';
+
+  @override
+  String get easyWeekAccept => 'Go easy this week';
+
+  @override
+  String get easyWeekActiveTitle => 'Easy week';
+
+  @override
+  String get easyWeekActiveMessage =>
+      'Weights are about 10% lighter with a set fewer until Monday. Your progress is saved for next week.';
+
+  @override
+  String get easyWeekEnd => 'Back to normal';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get planRefreshTitle => 'Freshen up your plan?';
+
+  @override
+  String get planRefreshMessage =>
+      'You\'ve followed this plan for two months. New exercises can spark new progress. Your history and records stay.';
+
+  @override
+  String get planRefreshAccept => 'Build a new plan';
+
+  @override
+  String focusExerciseOf(int index, int total) {
+    return 'Exercise $index of $total';
+  }
+
+  @override
+  String setOf(int index, int total) {
+    return 'Set $index of $total';
+  }
+
+  @override
+  String changeSet(int number, String load) {
+    return 'Change set $number: $load';
+  }
+
+  @override
+  String get tapToChange => 'Tap the numbers to change them';
+
+  @override
+  String get allSets => 'All sets';
+
+  @override
+  String get nextExercise => 'Next exercise';
+
+  @override
+  String get allDoneFinish => 'All sets done. Finish up';
+
+  @override
+  String get exerciseDone => 'Exercise done';
+
+  @override
+  String restNext(String set, String load) {
+    return 'Next: $set · $load';
+  }
+
+  @override
+  String get skipRestLong => 'Skip rest';
+
+  @override
+  String workoutProgress(int done, int total) {
+    return '$done of $total sets done';
+  }
+
+  @override
+  String get cueStart => 'First set. Start steady.';
+
+  @override
+  String get cueNewExercise => 'New exercise. Find your groove.';
+
+  @override
+  String get cueKeepGoing => 'Good. Keep that form.';
+
+  @override
+  String get cueHalfway => 'This one takes you past halfway.';
+
+  @override
+  String get cueLastSet => 'Last set of this exercise. Make it count.';
+
+  @override
+  String get cueFinalSet => 'Final set of the workout. Finish strong.';
+
+  @override
+  String get builtForYou => 'Built for you';
+
+  @override
+  String factSchedule(int days, int minutes) {
+    return '$days days a week, $minutes minutes each';
+  }
+
+  @override
+  String factEquipment(String gear) {
+    return 'Training with: $gear';
+  }
+
+  @override
+  String get factBodyweight => 'No equipment needed';
+
+  @override
+  String factProtect(String joints) {
+    return 'Going easy on your $joints';
+  }
+
+  @override
+  String factExercises(int exercises, int workouts) {
+    return '$exercises exercises across $workouts workouts';
+  }
+
+  @override
+  String trainingDaysCount(int count) {
+    return '$count training days a week';
+  }
+
+  @override
+  String get planEdit => 'Edit plan';
+
+  @override
+  String get planEditDone => 'Done editing';
+
+  @override
+  String get planRenameDay => 'Rename day';
+
+  @override
+  String get planDayName => 'Day name';
+
+  @override
+  String get planDayFull => 'This day is full. Remove an exercise first.';
+
+  @override
+  String planReorder(String name) {
+    return 'Reorder $name';
+  }
+
+  @override
+  String planRemove(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String planRestLine(String line, int seconds) {
+    return '$line · $seconds s rest';
+  }
+
+  @override
+  String get planSets => 'Sets';
+
+  @override
+  String get planRepsFrom => 'Reps, from';
+
+  @override
+  String get planRepsTo => 'Reps, up to';
+
+  @override
+  String get planTimeFrom => 'Time, from';
+
+  @override
+  String get planTimeTo => 'Time, up to';
+
+  @override
+  String get planRest => 'Rest between sets';
+
+  @override
+  String get onbSplitTitle => 'How do you want to split your week?';
+
+  @override
+  String get onbSplitHint =>
+      'Not sure? Keep the first one. You can change any day later.';
+
+  @override
+  String get styleAuto => 'Coach\'s pick';
+
+  @override
+  String get styleAutoSub =>
+      'The best fit for your days: each muscle trained about twice a week with time to recover.';
+
+  @override
+  String get styleFullBody => 'Full body';
+
+  @override
+  String get styleFullBodySub =>
+      'Everything, every session. Great when you train two or three days.';
+
+  @override
+  String get styleUpperLower => 'Upper / Lower';
+
+  @override
+  String get styleUpperLowerSub =>
+      'Upper body one day, legs the next. Balanced and easy to follow.';
+
+  @override
+  String get stylePpl => 'Push / Pull / Legs';
+
+  @override
+  String get stylePplSub =>
+      'Pushing muscles, pulling muscles, then legs. Popular for five or six days.';
+
+  @override
+  String get styleBodyPart => 'Body part days';
+
+  @override
+  String get styleBodyPartSub =>
+      'Chest day, back day, leg day. One or two areas get all your focus.';
+
+  @override
+  String get planRebuildDay => 'Rebuild this day';
+
+  @override
+  String get planRebuildDaySub =>
+      'Pick body parts and get a fresh set of exercises';
+
+  @override
+  String get planRebuildTitle => 'What should this day train?';
+
+  @override
+  String get planRebuildHint =>
+      'Pick one or more. For example chest and shoulders together.';
+
+  @override
+  String get planRebuildAction => 'Build the day';
+
+  @override
+  String get shareHeadline => 'My week';
+
+  @override
+  String get shareLifted => 'lifted this week';
+
+  @override
+  String shareTopMuscle(String muscle) {
+    return 'Most trained: $muscle';
+  }
+
+  @override
+  String get shareTagline => 'Ripped · the workout plan that adapts to you';
+
+  @override
+  String get shareFormatPost => 'Post';
+
+  @override
+  String get shareFormatStory => 'Story';
+
+  @override
+  String get shareAction => 'Share or save';
+
+  @override
+  String get shareHint =>
+      'Choose where it goes next. Pick Save or Photos to keep it on your phone.';
+
+  @override
+  String hoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String praiseRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new personal records. You\'re getting stronger.',
+      one: 'A new personal record. You\'re getting stronger.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String praiseLevel(int level) {
+    return 'You reached level $level. That\'s earned.';
+  }
+
+  @override
+  String praiseWeek(int target) {
+    return 'All $target workouts done this week. That\'s how streaks are built.';
+  }
+
+  @override
+  String get praiseComeback =>
+      'Good to have you back. The hardest one is done.';
+
+  @override
+  String get praiseFirst =>
+      'Your first workout is in the books. The start is the hard part.';
+
+  @override
+  String praiseProgress(int total, int left) {
+    String _temp0 = intl.Intl.pluralLogic(
+      left,
+      locale: localeName,
+      other: '$left more',
+      one: 'One more',
+    );
+    return 'Workout $total done. $_temp0 to complete your week.';
+  }
+
+  @override
+  String praiseCount(int total) {
+    return 'Workout $total done. You keep showing up.';
+  }
+
+  @override
+  String get hapticsTitle => 'Vibration feedback';
+
+  @override
+  String get hapticsSub =>
+      'A buzz when you log a set, when rest ends and when a workout is saved';
+
+  @override
+  String notifyWorkoutTitle(String name) {
+    return 'Today: $name';
+  }
+
+  @override
+  String get notifyCatchUpTitle => 'Yesterday\'s workout is still here';
+
+  @override
+  String notifyCatchUpBody(String name) {
+    return '$name: do it today, save it for later or skip it. Your call.';
+  }
+
+  @override
+  String missedTitle(String weekday) {
+    return 'You missed $weekday\'s workout';
+  }
+
+  @override
+  String missedRest(String missed) {
+    return '$missed is still waiting. Today is a rest day, so it\'s up to you.';
+  }
+
+  @override
+  String missedTraining(String missed, String today) {
+    return '$missed is still waiting. Do it today and $today moves to your next training day, do both, or skip it.';
+  }
+
+  @override
+  String missedDoIt(String name) {
+    return 'Do $name today';
+  }
+
+  @override
+  String get missedDoBoth => 'Do both today';
+
+  @override
+  String missedSkip(String name) {
+    return 'Skip $name';
+  }
+
+  @override
+  String get missedKeep => 'Keep it for my next training day';
+
+  @override
+  String missedSkipped(String name) {
+    return 'Skipped. Next up: $name.';
+  }
+
+  @override
+  String get pickWorkout => 'Choose a different workout';
+
+  @override
+  String get pickWorkoutTitle => 'What do you want to train?';
+
+  @override
+  String secondWorkout(String name) {
+    return 'Do $name too';
+  }
+
+  @override
   String get appearance => 'Appearance';
 
   @override

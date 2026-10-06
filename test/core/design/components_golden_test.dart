@@ -241,4 +241,14 @@ void main() {
     ),
     size: const Size(400, 120),
   );
+
+  goldenTest(
+    'workout_progress_strip',
+    () => const WorkoutProgressStrip(
+      current: 1,
+      label: '5 of 12 sets done',
+      segments: [(3, 3), (2, 4), (0, 3), (0, 2)],
+    ),
+    size: const Size(400, 60),
+  );
 }
