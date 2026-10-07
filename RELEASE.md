@@ -113,10 +113,11 @@ Everything else (location, contacts, photos, messages, financial, etc.):
 > Ripped gives general fitness guidance, not medical advice.
 
 **Graphics:**
-- App icon: `store/play_icon_512.png` (placeholder dumbbell; replace with your
-  final logo when you have one).
-- Feature graphic 1024×500: needed; a dark background with the icon and
-  "Ripped" works.
+- App icon: `store/play_icon_512.png` (512 x 512, ready to upload).
+- Feature graphic: `store/feature_graphic_1024x500.png` (ready to upload).
+- Both use the primary logo (Volt). Other sizes and colourways, if a
+  listing or a press page needs them, are in `assets/brand/png/` and
+  `assets/brand/svg/`.
 - Phone screenshots (2–8, portrait): take on your phone with real data:
   1. Today screen with a workout
   2. Active workout mid-session (rest timer showing)

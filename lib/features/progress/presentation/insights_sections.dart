@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
+import 'package:ripped/core/design/brand.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -30,6 +31,7 @@ class WeekRecapSection extends ConsumerWidget {
     final streak = ref.watch(streakProvider);
     final volume = Fmt.volume(recap.volumeKg, units, l10n);
     final change = recap.volumeChange;
+    final logo = ref.watch(brandLogoProvider).value ?? BrandLogo.volt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -44,6 +46,7 @@ class WeekRecapSection extends ConsumerWidget {
                   onPressed: () => unawaited(
                     showShareCardSheet(
                       context,
+                      logo: logo,
                       text: l10n.shareWeekText(
                         recap.workouts,
                         recap.sets,

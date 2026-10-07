@@ -9,6 +9,7 @@ import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/profile_mapping.dart';
 import 'package:ripped/core/db/settings_repository.dart';
+import 'package:ripped/core/design/brand.dart';
 import 'package:ripped/core/notifications/reminder_service.dart';
 import 'package:ripped/core/review/review_service.dart';
 import 'package:ripped/core/sync/sync_service.dart';
@@ -280,6 +281,11 @@ final initialThemeProvider = Provider<String>(
 /// "system", "light" or "dark".
 final themeProvider = StreamProvider<String>(
   (ref) => ref.watch(settingsRepositoryProvider).watchTheme(),
+);
+
+/// The logo colourway the user picked (You > Logo).
+final brandLogoProvider = StreamProvider<BrandLogo>(
+  (ref) => ref.watch(settingsRepositoryProvider).watchLogo(),
 );
 
 final remindersProvider = StreamProvider<ReminderSettings>(

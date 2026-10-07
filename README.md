@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/brand/png/lockup_volt_tile_480.png" alt="Ripped logo" width="420">
+</p>
+
 # Ripped
 
 A minimalist, offline-first workout app for Android, built with Flutter.
@@ -84,7 +88,10 @@ and an account is optional.
 - **Progress tab:** this week's totals, sets per muscle group, streak
   calendar, records, a strength chart per lift, and history.
 - **Share card:** a branded image of the week in Post (1080 x 1350) or
-  Story (1080 x 1920) size. Totals only, nothing personal.
+  Story (1080 x 1920) size, in the colours of the logo you picked. Totals
+  only, nothing personal.
+- **Logo:** Volt, Ember or Chalk (You > Logo), used in the app and on
+  share cards.
 
 ### Account and data (all optional)
 - Works fully offline with no account.
@@ -195,6 +202,7 @@ assets/
   catalog/             catalog.sqlite, images, videos (generated)
   legal/               privacy, terms, delete-account (Markdown)
   anim/                Lottie files (slot; none added yet)
+  brand/               logo kit: svg/ and png/ in every colourway (not bundled)
   fonts/               Inter, Barlow Condensed
 docs/                  generated legal pages for GitHub Pages
 supabase/              migrations, RLS tests, delete-account function
@@ -247,7 +255,7 @@ dart run drift_dev make-migrations             # after bumping schemaVersion
 flutter test --coverage && python tool/coverage_report.py   # domain gate (>= 90%)
 dart run tool/build_catalog/build_catalog.dart # rebuild assets/catalog
 python tool/build_legal.py                     # rebuild docs/*.html from assets/legal
-python tool/gen_icons.py                       # launcher icons + store icon
+python tool/gen_brand.py                       # logo kit, launcher icons, splash, store graphics
 ```
 
 Release bundle (run by the owner):
@@ -321,6 +329,14 @@ Tokens and components are in `lib/core/design/`; the full specification is
 - Inter for text, Barlow Condensed for headings and numbers.
 - Material Symbols Rounded icons; state is shown with the fill axis.
 - A floating pill navigation bar whose selected tab expands with a spring.
+- **Logo:** the Weight Stack R, an R built from the plates of a machine
+  weight stack with one plate in the accent colour ("your level"). Three
+  colourways: Volt (lime on black, the primary one), Ember and Chalk.
+  `tool/gen_brand.py` generates every size and format from one definition:
+  the kit in `assets/brand/`, the plates and colours the app draws
+  (`lib/core/design/brand.dart`), the Android launcher, splash and
+  notification icons, the Play Store icon and feature graphic in `store/`,
+  and the web icons.
 - Respects Reduce Motion and text scaling up to 200%. No red or shaming
   for missed days.
 
@@ -367,7 +383,7 @@ One switch in You > Preferences turns all of it off.
 
 ## Testing
 
-About 560 tests: domain unit tests, repository tests on an in-memory
+About 570 tests: domain unit tests, repository tests on an in-memory
 database, a two-device sync test against a fake server, schema migration
 tests, widget tests of the full app flow, an automated accessibility audit
 (tap-target size, labels, contrast) on every main screen, and golden tests

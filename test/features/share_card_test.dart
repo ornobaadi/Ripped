@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ripped/core/design/brand.dart';
+import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/features/progress/presentation/share_card.dart';
 
 import '../helpers/golden.dart';
@@ -41,6 +43,46 @@ void main() {
       expect(ShareFormat.pixelWidth / format.aspect, format.pixelHeight);
     });
   }
+
+  testWidgets('the card takes the colours of the chosen logo', (tester) async {
+    for (final logo in BrandLogo.values) {
+      await tester.pumpWidget(
+        wrapForTest(
+          SizedBox(
+            width: 300,
+            child: ShareCard(data: data, format: ShareFormat.story, logo: logo),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      final box = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(ShareCard),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect((box.decoration as BoxDecoration).color, logo.bg);
+      final volume = tester.widget<Text>(find.text('8,400 kg'));
+      expect(volume.style!.color, logo.accent);
+      // The logo in the header, and again as the faint backdrop.
+      expect(find.byType(BrandMark), findsNWidgets(2));
+    }
+  });
+
+  goldenTest(
+    'share_card_story_chalk',
+    () => SizedBox(
+      width: 300,
+      child: ShareCard(
+        data: data,
+        format: ShareFormat.story,
+        logo: BrandLogo.chalk,
+      ),
+    ),
+    size: const Size(340, 580),
+  );
 
   goldenTest(
     'share_card_post',

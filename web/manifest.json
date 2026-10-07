@@ -1,11 +1,11 @@
 {
-    "name": "ripped",
-    "short_name": "ripped",
+    "name": "Ripped",
+    "short_name": "Ripped",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0E0F11",
+    "theme_color": "#0E0F11",
+    "description": "A workout plan that adapts every session.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

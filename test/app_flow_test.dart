@@ -9,6 +9,7 @@ import 'package:ripped/app/router.dart';
 import 'package:ripped/core/catalog/catalog_repository.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/settings_repository.dart';
+import 'package:ripped/core/design/brand.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/features/onboarding/presentation/plan_building_view.dart';
 import 'package:ripped/features/plan/data/program_repository.dart';
@@ -219,7 +220,9 @@ void main() {
     });
   });
 
-  testWidgets('theme switch applies at once and is remembered', (tester) async {
+  testWidgets('theme and logo choices apply at once and are remembered', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       await pumpApp(tester);
       await tester.tap(find.text('Skip'));
@@ -241,6 +244,20 @@ void main() {
       await settle(tester);
       expect(brightness(), Brightness.light);
       expect(await SettingsRepository(db).theme(), 'light');
+
+      // Close the theme sheet. The logo colourway: saved, and shown at once.
+      await tester.tapAt(const Offset(10, 10));
+      await settle(tester);
+      await tester.ensureVisible(find.text('Logo'));
+      await tester.tap(find.text('Logo'));
+      await settle(tester);
+      await tester.tap(find.text('Chalk'));
+      await settle(tester);
+      expect(await SettingsRepository(db).watchLogo().first, BrandLogo.chalk);
+      expect(
+        tester.widgetList<BrandMark>(find.byType(BrandMark)).map((m) => m.logo),
+        contains(BrandLogo.chalk),
+      );
       await unmount(tester);
     });
   });

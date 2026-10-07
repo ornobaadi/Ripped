@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ripped/core/db/app_database.dart';
 import 'package:ripped/core/db/settings_repository.dart';
+import 'package:ripped/core/design/brand.dart';
 
 void main() {
   group('reminder settings', () {
@@ -55,6 +56,13 @@ void main() {
       expect(await repo.planStyle(), isNull);
       await repo.savePlanStyle('bodyPart');
       expect(await repo.planStyle(), 'bodyPart');
+    });
+
+    test('the logo is Volt until another one is picked', () async {
+      final repo = SettingsRepository(db);
+      expect(await repo.watchLogo().first, BrandLogo.volt);
+      await repo.saveLogo(BrandLogo.chalk);
+      expect(await repo.watchLogo().first, BrandLogo.chalk);
     });
 
     test('haptics on by default and can be turned off', () async {

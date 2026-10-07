@@ -87,6 +87,7 @@ flutter:
     - assets/catalog/videos/
     - assets/legal/
     - assets/anim/
+    # assets/brand is the logo kit for outside the app; none of it is bundled.
 
   fonts:
     - family: Inter

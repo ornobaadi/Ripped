@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:ripped/core/db/app_database.dart';
+import 'package:ripped/core/design/brand.dart';
 
 /// Typed device preferences on top of the key/value `settings` table.
 class ReminderSettings {
@@ -78,6 +79,18 @@ class SettingsRepository {
       .insertOnConflictUpdate(
         SettingsCompanion.insert(key: _theme, value: theme),
       );
+
+  static const _logo = 'appearance.logo';
+
+  /// The logo colourway shown in the app and on share cards. The home
+  /// screen icon is always the primary one.
+  Stream<BrandLogo> watchLogo() =>
+      _one(_logo).watchSingleOrNull().map((r) => _logo_(r?.value));
+
+  Future<void> saveLogo(BrandLogo logo) => _put(_logo, logo.name);
+
+  static BrandLogo _logo_(String? name) =>
+      BrandLogo.values.asNameMap()[name] ?? BrandLogo.volt;
 
   static const _easyUntil = 'coach.easyWeekUntil';
   static const _easyStarted = 'coach.easyWeekStartedAt';

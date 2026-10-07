@@ -47,7 +47,8 @@ class LocalReminderScheduler implements ReminderScheduler {
     }
     await _plugin.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        // White silhouette of the mark (res/drawable/ic_notification.xml).
+        android: AndroidInitializationSettings('ic_notification'),
       ),
     );
     _ready = true;

@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:ripped/core/design/brand.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -59,15 +58,37 @@ enum ShareFormat {
   static const pixelWidth = 1080;
 }
 
-/// The branded card. Always in the app's dark colours with the lime accent,
-/// whatever theme the phone is in, so shared images look like Ripped.
+/// The card's colours, taken from a logo colourway.
+class _CardColors {
+  new(BrandLogo logo)
+    : bg = logo.bg,
+      textPrimary = logo.plate,
+      textSecondary = Color.lerp(logo.bg, logo.plate, 0.62)!,
+      surfaceRaised = Color.lerp(logo.bg, logo.plate, 0.1)!,
+      accent = logo.accent;
+
+  final Color bg;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color surfaceRaised;
+  final Color accent;
+}
+
+/// The branded card. Always in the colours of the chosen [logo], whatever
+/// theme the phone is in, so shared images look like Ripped.
 class ShareCard extends StatelessWidget {
-  const new({required this.data, required this.format, super.key});
+  new({
+    required this.data,
+    required this.format,
+    this.logo = BrandLogo.volt,
+    super.key,
+  }) : _c = _CardColors(logo);
 
   final ShareCardData data;
   final ShareFormat format;
+  final BrandLogo logo;
 
-  static const AppColors _c = AppColors.dark;
+  final _CardColors _c;
   static const _letters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   @override
@@ -119,19 +140,18 @@ class ShareCard extends StatelessWidget {
               decoration: BoxDecoration(color: _c.bg),
               child: Stack(
                 children: [
-                  const Positioned.fill(
-                    child: CustomPaint(painter: _Backdrop(_c)),
+                  Positioned.fill(
+                    child: CustomPaint(painter: _Backdrop(_c.accent)),
                   ),
+                  // The weight stack again, huge and faint.
                   Positioned(
-                    right: -36,
-                    bottom: 40,
-                    child: Transform.rotate(
-                      angle: -math.pi / 7,
-                      child: Icon(
-                        Symbols.exercise_rounded,
-                        size: 220,
-                        color: _c.textPrimary.withValues(alpha: 0.05),
-                      ),
+                    right: -44,
+                    bottom: 36,
+                    child: BrandMark(
+                      bare: true,
+                      size: 250,
+                      plate: _c.textPrimary.withValues(alpha: 0.045),
+                      accent: _c.textPrimary.withValues(alpha: 0.045),
                     ),
                   ),
                   Padding(
@@ -141,6 +161,13 @@ class ShareCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
+                            BrandMark(
+                              bare: true,
+                              size: 24,
+                              plate: _c.textPrimary,
+                              accent: _c.accent,
+                            ),
+                            const SizedBox(width: 10),
                             Text('RIPPED', style: display(26, spacing: 3)),
                             const SizedBox(width: 12),
                             Expanded(
@@ -247,12 +274,12 @@ class ShareCard extends StatelessWidget {
   }
 }
 
-/// A soft lime glow in the top corner and a thin accent rule: enough to
-/// feel designed without competing with the numbers.
+/// A soft glow in the top corner and a thin accent rule: enough to feel
+/// designed without competing with the numbers.
 class _Backdrop extends CustomPainter {
-  const new(this.c);
+  const new(this.accent);
 
-  final AppColors c;
+  final Color accent;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -263,18 +290,15 @@ class _Backdrop extends CustomPainter {
         size.width * 0.9,
         Paint()
           ..shader = ui.Gradient.radial(glow, size.width * 0.9, [
-            c.accent.withValues(alpha: 0.22),
-            c.accent.withValues(alpha: 0),
+            accent.withValues(alpha: 0.22),
+            accent.withValues(alpha: 0),
           ]),
       )
-      ..drawRect(
-        Rect.fromLTWH(0, 0, 5, size.height),
-        Paint()..color = c.accent,
-      );
+      ..drawRect(Rect.fromLTWH(0, 0, 5, size.height), Paint()..color = accent);
   }
 
   @override
-  bool shouldRepaint(_Backdrop old) => false;
+  bool shouldRepaint(_Backdrop old) => old.accent != accent;
 }
 
 /// Preview the card, choose post or story shape, then share or save it
@@ -283,17 +307,19 @@ Future<void> showShareCardSheet(
   BuildContext context, {
   required ShareCardData data,
   required String text,
+  BrandLogo logo = BrandLogo.volt,
 }) => showAppSheet<void>(
   context,
   scrollable: true,
-  builder: (_) => _ShareCardSheet(data: data, text: text),
+  builder: (_) => _ShareCardSheet(data: data, text: text, logo: logo),
 );
 
 class _ShareCardSheet extends StatefulWidget {
-  const new({required this.data, required this.text});
+  const new({required this.data, required this.text, required this.logo});
 
   final ShareCardData data;
   final String text;
+  final BrandLogo logo;
 
   @override
   State<_ShareCardSheet> createState() => _ShareCardSheetState();
@@ -372,7 +398,11 @@ class _ShareCardSheetState extends State<_ShareCardSheet> {
                 child: ExcludeSemantics(
                   child: RepaintBoundary(
                     key: _key,
-                    child: ShareCard(data: widget.data, format: _format),
+                    child: ShareCard(
+                      data: widget.data,
+                      format: _format,
+                      logo: widget.logo,
+                    ),
                   ),
                 ),
               ),

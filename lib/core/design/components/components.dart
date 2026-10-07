@@ -1,6 +1,7 @@
 export 'app_button.dart';
 export 'app_card.dart';
 export 'app_sheet.dart';
+export 'brand_mark.dart';
 export 'choice_card.dart';
 export 'empty_state.dart';
 export 'exercise_motion.dart';

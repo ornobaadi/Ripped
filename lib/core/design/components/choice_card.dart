@@ -13,12 +13,16 @@ class ChoiceCard extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.icon,
+    this.leading,
     super.key,
   });
 
   final String title;
   final String? subtitle;
   final IconData? icon;
+
+  /// Shown in place of [icon], e.g. a preview of the choice.
+  final Widget? leading;
   final bool selected;
   final VoidCallback onTap;
 
@@ -50,7 +54,10 @@ class ChoiceCard extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Row(
                 children: [
-                  if (icon != null) ...[
+                  if (leading != null) ...[
+                    leading!,
+                    const SizedBox(width: AppSpacing.md),
+                  ] else if (icon != null) ...[
                     Icon(icon, color: c.textPrimary),
                     const SizedBox(width: AppSpacing.md),
                   ],

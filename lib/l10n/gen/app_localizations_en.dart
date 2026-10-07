@@ -1055,6 +1055,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
+  String get logoTitle => 'Logo';
+
+  @override
+  String get logoSub =>
+      'Used in the app and on the cards you share. The icon on your home screen stays the same.';
+
+  @override
+  String get logoVolt => 'Volt';
+
+  @override
+  String get logoVoltSub => 'Lime on black';
+
+  @override
+  String get logoEmber => 'Ember';
+
+  @override
+  String get logoEmberSub => 'Orange on warm black';
+
+  @override
+  String get logoChalk => 'Chalk';
+
+  @override
+  String get logoChalkSub => 'Orange on chalk white';
+
+  @override
   String get unitsMetric => 'Kilograms';
 
   @override

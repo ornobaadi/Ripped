@@ -1846,6 +1846,54 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get themeDark;
 
+  /// No description provided for @logoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo'**
+  String get logoTitle;
+
+  /// No description provided for @logoSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Used in the app and on the cards you share. The icon on your home screen stays the same.'**
+  String get logoSub;
+
+  /// No description provided for @logoVolt.
+  ///
+  /// In en, this message translates to:
+  /// **'Volt'**
+  String get logoVolt;
+
+  /// No description provided for @logoVoltSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Lime on black'**
+  String get logoVoltSub;
+
+  /// No description provided for @logoEmber.
+  ///
+  /// In en, this message translates to:
+  /// **'Ember'**
+  String get logoEmber;
+
+  /// No description provided for @logoEmberSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange on warm black'**
+  String get logoEmberSub;
+
+  /// No description provided for @logoChalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Chalk'**
+  String get logoChalk;
+
+  /// No description provided for @logoChalkSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange on chalk white'**
+  String get logoChalkSub;
+
   /// No description provided for @unitsMetric.
   ///
   /// In en, this message translates to:

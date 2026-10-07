@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:ripped/core/design/brand.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/tokens.dart';
 import 'package:ripped/domain/catalog/exercise.dart';
@@ -40,6 +41,30 @@ void main() {
       child: const Text('Upper body A · 5 exercises · 45 min'),
     ),
     size: const Size(400, 200),
+  );
+
+  goldenTest(
+    'brand_mark',
+    () => Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (final logo in BrandLogo.values)
+              BrandMark(size: 96, logo: logo),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        ChoiceCard(
+          title: 'Ember',
+          subtitle: 'Orange on warm black',
+          leading: const BrandMark(size: 44, logo: BrandLogo.ember),
+          selected: true,
+          onTap: () {},
+        ),
+      ],
+    ),
+    size: const Size(400, 260),
   );
 
   goldenTest(

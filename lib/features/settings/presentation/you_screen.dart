@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:ripped/app/providers.dart';
 import 'package:ripped/core/analytics/analytics.dart';
 import 'package:ripped/core/db/settings_repository.dart';
+import 'package:ripped/core/design/brand.dart';
 import 'package:ripped/core/design/components/components.dart';
 import 'package:ripped/core/design/theme.dart';
 import 'package:ripped/core/design/tokens.dart';
@@ -41,6 +42,7 @@ class YouScreen extends ConsumerWidget {
     final units = ref.watch(unitsProvider);
     final theme =
         ref.watch(themeProvider).value ?? ref.watch(initialThemeProvider);
+    final logo = ref.watch(brandLogoProvider).value ?? BrandLogo.volt;
 
     return Scaffold(
       // Scrolls behind the floating nav bar; the bottom inset clears it.
@@ -102,6 +104,16 @@ class YouScreen extends ConsumerWidget {
               ),
             ),
             AppListTile(
+              icon: Symbols.palette_rounded,
+              title: l10n.logoTitle,
+              subtitle: _logoName(l10n, logo),
+              trailing: BrandMark(logo: logo),
+              onTap: () => showAppSheet<void>(
+                context,
+                builder: (context) => const _LogoSheet(),
+              ),
+            ),
+            AppListTile(
               icon: Symbols.vibration_rounded,
               title: l10n.hapticsTitle,
               subtitle: l10n.hapticsSub,
@@ -150,6 +162,8 @@ class YouScreen extends ConsumerWidget {
               onTap: () => _showText(context, l10n.credits, l10n.creditsBody),
             ),
             const SizedBox(height: AppSpacing.xl),
+            Center(child: BrandMark(size: 40, logo: logo)),
+            const SizedBox(height: AppSpacing.xs),
             Center(
               child: Text(
                 l10n.version('1.0.0'),
@@ -194,6 +208,55 @@ class _ThemeSheet extends ConsumerWidget {
               selected: current == value,
               onTap: () => unawaited(
                 ref.read(settingsRepositoryProvider).saveTheme(value),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+String _logoName(AppLocalizations l10n, BrandLogo logo) => switch (logo) {
+  BrandLogo.volt => l10n.logoVolt,
+  BrandLogo.ember => l10n.logoEmber,
+  BrandLogo.chalk => l10n.logoChalk,
+};
+
+/// The logo colourway used in the app and on share cards. Applies
+/// immediately.
+class _LogoSheet extends ConsumerWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final text = Theme.of(context).textTheme;
+    final current = ref.watch(brandLogoProvider).value ?? BrandLogo.volt;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.logoTitle, style: text.titleLarge),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.logoSub,
+          style: text.bodyMedium?.copyWith(color: context.colors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        for (final logo in BrandLogo.values)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: ChoiceCard(
+              title: _logoName(l10n, logo),
+              subtitle: switch (logo) {
+                BrandLogo.volt => l10n.logoVoltSub,
+                BrandLogo.ember => l10n.logoEmberSub,
+                BrandLogo.chalk => l10n.logoChalkSub,
+              },
+              leading: BrandMark(size: 44, logo: logo),
+              selected: current == logo,
+              onTap: () => unawaited(
+                ref.read(settingsRepositoryProvider).saveLogo(logo),
               ),
             ),
           ),
